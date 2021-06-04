@@ -110,6 +110,8 @@ export class Glue {
     image: HTMLImageElement | string,
     x = 0,
     y = 0,
+    width?: number,
+    height?: number,
     opacity = 1,
     mode = 0
   ): void {
@@ -122,6 +124,10 @@ export class Glue {
     } else {
       this.registerImage('_temp', image);
       size = [image.naturalWidth, image.naturalHeight];
+    }
+
+    if (width && height) {
+      size = [width, height];
     }
 
     this.program('_blend')?.uniforms.set('iImage', 1);
