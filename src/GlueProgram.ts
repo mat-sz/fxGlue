@@ -72,7 +72,9 @@ export class GlueProgram {
     if (!this._fragmentShader || !this._vertexShader) {
       gl.deleteProgram(program);
 
-      const error = new GlueProgramError('Could not compile WebGL shader.');
+      const error = new GlueProgramError(
+        'Could not compile WebGL shader. Additional information is available in the vertexShaderErrors and fragmentShaderErrors properties of this Error object.'
+      );
       error.vertexShaderErrors = this._vertexShaderErrors;
       error.fragmentShaderErrors = this._fragmentShaderErrors;
       throw error;
