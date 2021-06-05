@@ -1,7 +1,9 @@
+export type GlueUniformValue = number | boolean | Float32List | Int32List;
+
 interface GlueUniformInfo {
   type: number;
   location: WebGLUniformLocation;
-  lastValue?: any;
+  lastValue?: GlueUniformValue;
 }
 
 export class GlueUniforms {
@@ -31,12 +33,23 @@ export class GlueUniforms {
     }
   }
 
-  get(name: string): any {
+  get(name: string): GlueUniformValue | undefined {
     return this.uniforms[name]?.lastValue;
   }
 
-  set(name: string, value: any): void {
+  set(name: string, value: GlueUniformValue): void {
     this.gl.useProgram(this.program);
+    this.setOne(name, value);
+  }
+
+  setAll(object: Record<string, GlueUniformValue>): void {
+    this.gl.useProgram(this.program);
+    for (const key of Object.keys(object)) {
+      this.setOne(key, object[key]);
+    }
+  }
+
+  private setOne(name: string, value: any): void {
     const uniform = this.uniforms[name];
 
     if (!uniform) {
