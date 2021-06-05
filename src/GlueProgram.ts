@@ -2,6 +2,10 @@ import { Glue } from './Glue';
 import { GluePreprocessor } from './GluePreprocessor';
 import { GlueUniforms } from './GlueUniforms';
 
+const rectangleBuffer = new Float32Array([
+  -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1,
+]);
+
 export class GlueProgramError extends Error {
   vertexShaderErrors: Record<number, string[]> = {};
   fragmentShaderErrors: Record<number, string[]> = {};
@@ -85,7 +89,7 @@ export class GlueProgram {
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    this.glue.setRectangle(gl, -1, -1, 2, 2);
+    gl.bufferData(gl.ARRAY_BUFFER, rectangleBuffer, gl.STATIC_DRAW);
 
     const positionLocation = gl.getAttribLocation(this._program, 'position');
     gl.enableVertexAttribArray(positionLocation);
