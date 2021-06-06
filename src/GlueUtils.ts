@@ -12,14 +12,18 @@ export class GlueUtils {
   }
 
   static getWebGLContext(canvas: HTMLCanvasElement): WebGLRenderingContext {
+    const options = {
+      premultipliedAlpha: false,
+    };
+
     const context =
-      canvas.getContext('webgl') ||
-      (canvas.getContext('experimental-webgl') as WebGLRenderingContext);
+      canvas.getContext('webgl', options) ||
+      canvas.getContext('experimental-webgl', options);
 
     if (!context) {
       throw new Error('WebGL is not available.');
     }
 
-    return context;
+    return context as WebGLRenderingContext;
   }
 }
