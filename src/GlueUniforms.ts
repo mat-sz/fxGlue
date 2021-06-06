@@ -105,6 +105,8 @@ export class GlueUniforms {
         this.gl.uniform4fv(uniform.location, value);
         break;
       case this.gl.BOOL:
+        this.gl.uniform1i(uniform.location, value ? 1 : 0);
+        break;
       case this.gl.INT:
         this.gl.uniform1i(uniform.location, value);
         break;
