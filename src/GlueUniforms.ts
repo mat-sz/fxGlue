@@ -56,6 +56,39 @@ export class GlueUniforms {
       return;
     }
 
+    if (
+      typeof value === 'string' &&
+      (uniform.type === this.gl.FLOAT_VEC3 ||
+        uniform.type === this.gl.FLOAT_VEC4)
+    ) {
+      if (value.length < 7) {
+        throw new Error('Invalid color value.');
+      }
+
+      const r = parseInt(value.slice(1, 3), 16) / 255;
+      const g = parseInt(value.slice(3, 5), 16) / 255;
+      const b = parseInt(value.slice(5, 7), 16) / 255;
+
+      if (
+        typeof r !== 'number' ||
+        typeof g !== 'number' ||
+        typeof b !== 'number'
+      ) {
+        throw new Error('Invalid color value.');
+      }
+
+      if (uniform.type === this.gl.FLOAT_VEC3) {
+        value = [r, g, b];
+      } else {
+        let a = parseInt(value.slice(7, 9), 16) / 255;
+        if (isNaN(a)) {
+          a = 1.0;
+        }
+
+        value = [r, g, b, a];
+      }
+    }
+
     uniform.lastValue = value;
 
     switch (uniform.type) {
