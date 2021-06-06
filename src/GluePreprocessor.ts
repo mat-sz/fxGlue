@@ -20,7 +20,7 @@ float repeat(const in float a) { return mod(a, 1.0); }
 vec2 repeat(const in vec2 uv) { return vec2(repeat(uv.x), repeat(uv.y)); }`,
 };
 
-const shaderPrefix = 'precision mediump float;\n';
+const shaderPrefix = 'precision mediump float;\nprecision mediump int;\n';
 
 export interface GluePreprocessorResult {
   lineMap: Record<number, number>;
