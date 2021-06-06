@@ -13,6 +13,11 @@ float pow4(const in float x) { float x2 = x*x; return x2*x2; }
 
 float atan2(const in float y, const in float x) { return x == 0.0 ? sign(y)*PI/2.0 : atan(y, x); }
 float atan2(const in vec2 v) { return atan2(v.y, v.x); }`,
+  wrap: `float mirroredRepeat(const in float a) { return abs(mod(a + 1.0, 2.0) - 1.0); }
+vec2 mirroredRepeat(const in vec2 uv) { return vec2(mirroredRepeat(uv.x), mirroredRepeat(uv.y)); }
+
+float repeat(const in float a) { return mod(a, 1.0); }
+vec2 repeat(const in vec2 uv) { return vec2(repeat(uv.x), repeat(uv.y)); }`,
 };
 
 const shaderPrefix = 'precision mediump float;\n';
