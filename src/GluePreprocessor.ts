@@ -12,12 +12,26 @@ float pow3(const in float x) { return x*x*x; }
 float pow4(const in float x) { float x2 = x*x; return x2*x2; }
 
 float atan2(const in float y, const in float x) { return x == 0.0 ? sign(y)*PI/2.0 : atan(y, x); }
-float atan2(const in vec2 v) { return atan2(v.y, v.x); }`,
+float atan2(const in vec2 v) { return atan2(v.y, v.x); }
+`,
   wrap: `float mirroredRepeat(const in float a) { return abs(mod(a + 1.0, 2.0) - 1.0); }
 vec2 mirroredRepeat(const in vec2 uv) { return vec2(mirroredRepeat(uv.x), mirroredRepeat(uv.y)); }
 
 float repeat(const in float a) { return mod(a, 1.0); }
-vec2 repeat(const in vec2 uv) { return vec2(repeat(uv.x), repeat(uv.y)); }`,
+vec2 repeat(const in vec2 uv) { return vec2(repeat(uv.x), repeat(uv.y)); }
+
+float clip(const in vec2 v, const in vec4 bounds) {
+  vec2 s = step(bounds.xy, v) - step(bounds.zw, v);
+  return s.x * s.y;   
+}
+float clip(const in vec2 v) { return clip(v, vec4(0.0, 0.0, 1.0, 1.0)); }
+
+float clipSmooth(const in vec2 v, const in vec4 bounds, const in float x) {
+  vec2 s = smoothstep(bounds.xy, bounds.xy + vec2(x), v) - smoothstep(bounds.zw - vec2(x), bounds.zw, v);
+  return s.x * s.y;   
+}
+float clipSmooth(const in vec2 v, const in float x) { return clipSmooth(v, vec4(0.0, 0.0, 1.0, 1.0), x); }
+`,
 };
 
 const shaderPrefix = 'precision mediump float;\nprecision mediump int;\n';
