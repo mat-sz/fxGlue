@@ -1,3 +1,8 @@
+export enum GlueBlendMode {
+  NORMAL = 'normal',
+  MULTIPLY = 'multiply',
+}
+
 export const defaultFragmentShader = `void main()
 {
   vec2 p = gl_FragCoord.xy / iResolution.xy;
@@ -8,13 +13,12 @@ export const defaultVertexShader = `void main() {
   gl_Position = vec4(position, 1.0);
 }`;
 
-export const blendFragmentShader = `@use wrap
+const blendBaseFragmentShader = `@use wrap
 
 uniform sampler2D iImage;
 uniform vec2 iSize;
 uniform vec2 iOffset;
 uniform float iOpacity;
-uniform int iMode;
 
 void main()
 {
@@ -32,15 +36,22 @@ void main()
   dest.a *= iOpacity;
   dest *= clip(uv);
   
-  if (iMode == 0) { // NORMAL
-    dest *= dest.a;
-    gl_FragColor *= 1.0 - dest.a;
-    gl_FragColor += dest;
-  } else if (iMode == 1) { // MULTIPLY
-    if (dest.a > 0.0) {
-      gl_FragColor.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
-      gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);
-      // gl_FragColor.rgb *= mult.a;
-    }
-  }
+  @source
 }`;
+
+export const blendFragmentShaders: Record<GlueBlendMode, string> = {
+  [GlueBlendMode.NORMAL]: blendBaseFragmentShader.replace(
+    '@source',
+    `dest *= dest.a;
+gl_FragColor *= 1.0 - dest.a;
+gl_FragColor += dest;`
+  ),
+  [GlueBlendMode.MULTIPLY]: blendBaseFragmentShader.replace(
+    '@source',
+    `if (dest.a > 0.0) {
+  gl_FragColor.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
+  gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);
+  // gl_FragColor.rgb *= mult.a;
+}`
+  ),
+};

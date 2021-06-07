@@ -1,14 +1,10 @@
 import { GlueProgram } from './GlueProgram';
 import {
-  blendFragmentShader,
   defaultFragmentShader,
   defaultVertexShader,
+  blendFragmentShaders,
+  GlueBlendMode,
 } from './GlueShaderSources';
-
-export enum GlueBlendMode {
-  NORMAL = 0,
-  MULTIPLY = 1,
-}
 
 export class Glue {
   private _programs: Record<string, GlueProgram> = {};
@@ -24,7 +20,9 @@ export class Glue {
 
   constructor(private gl: WebGLRenderingContext) {
     this.registerProgram('_default');
-    this.registerProgram('_blend', blendFragmentShader);
+    for (const mode of Object.values(GlueBlendMode) as GlueBlendMode[]) {
+      this.registerProgram('_blend_' + mode, blendFragmentShaders[mode]);
+    }
 
     this.addFramebuffer();
     this.addFramebuffer();
@@ -94,15 +92,15 @@ export class Glue {
       size = [width, height];
     }
 
-    this.program('_blend')?.uniforms.set('iImage', 1);
-    this.program('_blend')?.uniforms.set('iSize', size);
-    this.program('_blend')?.uniforms.set('iOffset', [
-      x / this._width,
-      y / this._height,
-    ]);
-    this.program('_blend')?.uniforms.set('iMode', mode);
-    this.program('_blend')?.uniforms.set('iOpacity', opacity);
-    this.program('_blend')?.apply();
+    const blendProgram = this.program('_blend_' + mode);
+
+    if (blendProgram) {
+      blendProgram.uniforms.set('iImage', 1);
+      blendProgram.uniforms.set('iSize', size);
+      blendProgram.uniforms.set('iOffset', [x / this._width, y / this._height]);
+      blendProgram.uniforms.set('iOpacity', opacity);
+      blendProgram.apply();
+    }
 
     if (typeof image !== 'string') {
       this.deregisterImage('_temp');
