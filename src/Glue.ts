@@ -10,6 +10,7 @@ export class Glue {
   private _programs: Record<string, GlueProgram> = {};
   private _textures: Record<string, WebGLTexture> = {};
   private _textureSizes: Record<string, [number, number]> = {};
+  private _textureSources: Record<string, HTMLImageElement> = {};
   private _width = 0;
   private _height = 0;
   private _renderTextures: WebGLTexture[] = [];
@@ -127,6 +128,7 @@ export class Glue {
 
     this._textures[name] = texture;
     this._textureSizes[name] = [image.naturalWidth, image.naturalHeight];
+    this._textureSources[name] = image;
   }
 
   useImage(name: string): void {
@@ -147,6 +149,7 @@ export class Glue {
       this.gl.deleteTexture(this._textures[name]);
       delete this._textures[name];
       delete this._textureSizes[name];
+      delete this._textureSources[name];
     }
   }
 
