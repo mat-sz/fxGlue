@@ -5,12 +5,13 @@ import {
   blendFragmentShaders,
   GlueBlendMode,
 } from './GlueShaderSources';
+import { GlueSourceType, GlueUtils } from './GlueUtils';
 
 export class Glue {
   private _programs: Record<string, GlueProgram> = {};
   private _textures: Record<string, WebGLTexture> = {};
   private _textureSizes: Record<string, [number, number]> = {};
-  private _textureSources: Record<string, HTMLImageElement> = {};
+  private _textureSources: Record<string, GlueSourceType> = {};
   private _width = 0;
   private _height = 0;
   private _renderTextures: WebGLTexture[] = [];
@@ -69,7 +70,7 @@ export class Glue {
     this._height = height;
   }
 
-  image(
+  drawTexture(
     image: HTMLImageElement | string,
     x = 0,
     y = 0,
@@ -82,10 +83,10 @@ export class Glue {
 
     let size = [];
     if (typeof image === 'string') {
-      this.useImage(image);
+      this.useTexture(image);
       size = this._textureSizes[image];
     } else {
-      this.registerImage('_temp', image);
+      this.registerTexture('_temp', image);
       size = [image.naturalWidth, image.naturalHeight];
     }
 
@@ -104,14 +105,14 @@ export class Glue {
     }
 
     if (typeof image !== 'string') {
-      this.deregisterImage('_temp');
+      this.deregisterTexture('_temp');
     }
   }
 
-  registerImage(name: string, source: HTMLImageElement): void {
+  registerTexture(name: string, source: GlueSourceType): void {
     this.checkDisposed();
 
-    if (!source.complete || source.naturalHeight === 0) {
+    if (!GlueUtils.isSourceLoaded(source)) {
       throw new Error('Source is not loaded.');
     }
 
@@ -127,11 +128,11 @@ export class Glue {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
 
     this._textures[name] = texture;
-    this._textureSizes[name] = [source.naturalWidth, source.naturalHeight];
+    this._textureSizes[name] = GlueUtils.getSourceDimensions(source);
     this._textureSources[name] = source;
   }
 
-  useImage(name: string): void {
+  useTexture(name: string): void {
     if (!this._textures[name]) {
       throw new Error("A texture with this name doesn't exist: " + name);
     }
@@ -142,17 +143,17 @@ export class Glue {
     gl.bindTexture(gl.TEXTURE_2D, this._textures[name]);
   }
 
-  updateImage(name: string, source?: HTMLImageElement): void {
+  updateTexture(name: string, source?: GlueSourceType): void {
     if (!this._textures[name]) {
       throw new Error("A texture with this name doesn't exist: " + name);
     }
 
     if (source) {
-      if (!source.complete || source.naturalHeight === 0) {
+      if (!GlueUtils.isSourceLoaded(source)) {
         throw new Error('Source is not loaded.');
       }
 
-      this._textureSizes[name] = [source.naturalWidth, source.naturalHeight];
+      this._textureSizes[name] = GlueUtils.getSourceDimensions(source);
       this._textureSources[name] = source;
     }
 
@@ -172,7 +173,7 @@ export class Glue {
     );
   }
 
-  deregisterImage(name: string): void {
+  deregisterTexture(name: string): void {
     this.checkDisposed();
 
     if (this._textures[name]) {
@@ -183,7 +184,7 @@ export class Glue {
     }
   }
 
-  hasImage(name: string): boolean {
+  hasTexture(name: string): boolean {
     return !!this._textures[name];
   }
 
