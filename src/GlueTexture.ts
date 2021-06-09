@@ -2,6 +2,15 @@ import { Glue } from './Glue';
 import { GlueBlendMode } from './GlueShaderSources';
 import { GlueUtils, GlueSourceType } from './GlueUtils';
 
+export interface GlueTextureDrawOptions {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  opacity?: number;
+  mode?: GlueBlendMode;
+}
+
 export class GlueTexture {
   private _width: number;
   private _height: number;
@@ -36,14 +45,14 @@ export class GlueTexture {
     this._height = height;
   }
 
-  draw(
+  draw({
     x = 0,
     y = 0,
-    width?: number,
-    height?: number,
+    width,
+    height,
     opacity = 1,
-    mode: GlueBlendMode = GlueBlendMode.NORMAL
-  ): void {
+    mode = GlueBlendMode.NORMAL,
+  }: GlueTextureDrawOptions): void {
     this.use();
 
     let size = [this._width, this._height];

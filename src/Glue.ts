@@ -5,7 +5,7 @@ import {
   blendFragmentShaders,
   GlueBlendMode,
 } from './GlueShaderSources';
-import { GlueTexture } from './GlueTexture';
+import { GlueTexture, GlueTextureDrawOptions } from './GlueTexture';
 import { GlueSourceType, GlueUtils } from './GlueUtils';
 
 export class Glue {
@@ -101,18 +101,10 @@ export class Glue {
     return this._textures[name];
   }
 
-  draw(
-    source: GlueSourceType,
-    x = 0,
-    y = 0,
-    width?: number,
-    height?: number,
-    opacity = 1,
-    mode: GlueBlendMode = GlueBlendMode.NORMAL
-  ): void {
+  draw(source: GlueSourceType, options: GlueTextureDrawOptions): void {
     const texture = new GlueTexture(this.gl, this, source);
     texture.use();
-    texture.draw(x, y, width, height, opacity, mode);
+    texture.draw(options);
     texture.dispose();
   }
 
