@@ -5,13 +5,12 @@ import {
   blendFragmentShaders,
   GlueBlendMode,
 } from './GlueShaderSources';
+import { GlueTexture } from './GlueTexture';
 import { GlueSourceType, GlueUtils } from './GlueUtils';
 
 export class Glue {
   private _programs: Record<string, GlueProgram> = {};
-  private _textures: Record<string, WebGLTexture> = {};
-  private _textureSizes: Record<string, [number, number]> = {};
-  private _textureSources: Record<string, GlueSourceType> = {};
+  private _textures: Record<string, GlueTexture> = {};
   private _width = 0;
   private _height = 0;
   private _renderTextures: WebGLTexture[] = [];
@@ -70,8 +69,40 @@ export class Glue {
     this._height = height;
   }
 
-  drawTexture(
-    image: HTMLImageElement | string,
+  registerTexture(name: string, source: GlueSourceType): GlueTexture {
+    this.checkDisposed();
+
+    if (this._textures[name]) {
+      throw new Error('A program with this name already exists: ' + name);
+    }
+
+    if (!GlueUtils.isSourceLoaded(source)) {
+      throw new Error('Source is not loaded.');
+    }
+
+    const texture = new GlueTexture(this.gl, this, source);
+    this._textures[name] = texture;
+    return texture;
+  }
+
+  deregisterTexture(name: string): void {
+    this.checkDisposed();
+
+    this._textures[name]?.dispose();
+    delete this._textures[name];
+  }
+
+  hasTexture(name: string): boolean {
+    return !!this._textures[name];
+  }
+
+  texture(name: string): GlueTexture | undefined {
+    this.checkDisposed();
+    return this._textures[name];
+  }
+
+  draw(
+    source: GlueSourceType,
     x = 0,
     y = 0,
     width?: number,
@@ -79,113 +110,10 @@ export class Glue {
     opacity = 1,
     mode: GlueBlendMode = GlueBlendMode.NORMAL
   ): void {
-    this.checkDisposed();
-
-    let size = [];
-    if (typeof image === 'string') {
-      this.useTexture(image);
-      size = this._textureSizes[image];
-    } else {
-      this.registerTexture('_temp', image);
-      size = [image.naturalWidth, image.naturalHeight];
-    }
-
-    if (width && height) {
-      size = [width, height];
-    }
-
-    const blendProgram = this.program('_blend_' + mode);
-
-    if (blendProgram) {
-      blendProgram.uniforms.set('iImage', 1);
-      blendProgram.uniforms.set('iSize', size);
-      blendProgram.uniforms.set('iOffset', [x / this._width, y / this._height]);
-      blendProgram.uniforms.set('iOpacity', opacity);
-      blendProgram.apply();
-    }
-
-    if (typeof image !== 'string') {
-      this.deregisterTexture('_temp');
-    }
-  }
-
-  registerTexture(name: string, source: GlueSourceType): void {
-    this.checkDisposed();
-
-    if (!GlueUtils.isSourceLoaded(source)) {
-      throw new Error('Source is not loaded.');
-    }
-
-    if (this._textures[name]) {
-      throw new Error('A texture with this name already exists: ' + name);
-    }
-
-    const gl = this.gl;
-    const target = gl.TEXTURE1;
-    const texture = this.createTexture(target);
-
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
-
-    this._textures[name] = texture;
-    this._textureSizes[name] = GlueUtils.getSourceDimensions(source);
-    this._textureSources[name] = source;
-  }
-
-  useTexture(name: string): void {
-    if (!this._textures[name]) {
-      throw new Error("A texture with this name doesn't exist: " + name);
-    }
-
-    const gl = this.gl;
-    gl.activeTexture(gl.TEXTURE1);
-
-    gl.bindTexture(gl.TEXTURE_2D, this._textures[name]);
-  }
-
-  updateTexture(name: string, source?: GlueSourceType): void {
-    if (!this._textures[name]) {
-      throw new Error("A texture with this name doesn't exist: " + name);
-    }
-
-    if (source) {
-      if (!GlueUtils.isSourceLoaded(source)) {
-        throw new Error('Source is not loaded.');
-      }
-
-      this._textureSizes[name] = GlueUtils.getSourceDimensions(source);
-      this._textureSources[name] = source;
-    }
-
-    const gl = this.gl;
-    gl.activeTexture(gl.TEXTURE1);
-
-    gl.bindTexture(gl.TEXTURE_2D, this._textures[name]);
-
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.RGBA,
-      gl.RGBA,
-      gl.UNSIGNED_BYTE,
-      this._textureSources[name]
-    );
-  }
-
-  deregisterTexture(name: string): void {
-    this.checkDisposed();
-
-    if (this._textures[name]) {
-      this.gl.deleteTexture(this._textures[name]);
-      delete this._textures[name];
-      delete this._textureSizes[name];
-      delete this._textureSources[name];
-    }
-  }
-
-  hasTexture(name: string): boolean {
-    return !!this._textures[name];
+    const texture = new GlueTexture(this.gl, this, source);
+    texture.use();
+    texture.draw(x, y, width, height, opacity, mode);
+    texture.dispose();
   }
 
   registerProgram(
@@ -215,9 +143,7 @@ export class Glue {
     );
 
     program.setSize(this._width, this._height);
-
     this._programs[name] = program;
-
     return program;
   }
 
@@ -292,19 +218,7 @@ export class Glue {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
-  private checkDisposed(): void {
-    if (this._disposed) {
-      throw new Error('This Glue object has been disposed.');
-    }
-  }
-
-  private addFramebuffer(): void {
-    const [texture, framebuffer] = this.createFramebuffer(1, 1);
-    this._renderTextures.push(texture);
-    this._renderFramebuffers.push(framebuffer);
-  }
-
-  private createTexture(target?: number): WebGLTexture {
+  createTexture(target?: number): WebGLTexture {
     const gl = this.gl;
     const texture = gl.createTexture();
 
@@ -326,6 +240,18 @@ export class Glue {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     return texture;
+  }
+
+  private checkDisposed(): void {
+    if (this._disposed) {
+      throw new Error('This Glue object has been disposed.');
+    }
+  }
+
+  private addFramebuffer(): void {
+    const [texture, framebuffer] = this.createFramebuffer(1, 1);
+    this._renderTextures.push(texture);
+    this._renderFramebuffers.push(framebuffer);
   }
 
   private createFramebuffer(
