@@ -52,7 +52,7 @@ export class GlueTexture {
     height,
     opacity = 1,
     mode = GlueBlendMode.NORMAL,
-  }: GlueTextureDrawOptions): void {
+  }: GlueTextureDrawOptions = {}): void {
     this.use();
 
     let size = [this._width, this._height];
@@ -62,13 +62,16 @@ export class GlueTexture {
 
     const blendProgram = this.glue.program('_blend_' + mode);
 
-    if (blendProgram) {
-      blendProgram.uniforms.set('iImage', 1);
-      blendProgram.uniforms.set('iSize', size);
-      blendProgram.uniforms.set('iOffset', [x / this._width, y / this._height]);
-      blendProgram.uniforms.set('iOpacity', opacity);
-      blendProgram.apply();
+    if (!blendProgram) {
+      throw new Error('Invalid blend mode.');
     }
+
+    blendProgram.apply({
+      iImage: 1,
+      iSize: size,
+      iOffset: [x / this._width, y / this._height],
+      iOpacity: opacity,
+    });
   }
 
   update(source?: GlueSourceType): void {

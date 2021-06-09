@@ -6,6 +6,7 @@ import {
   GlueBlendMode,
 } from './GlueShaderSources';
 import { GlueTexture, GlueTextureDrawOptions } from './GlueTexture';
+import { GlueUniformValue } from './GlueUniforms';
 import { GlueSourceType, GlueUtils } from './GlueUtils';
 
 export class Glue {
@@ -101,7 +102,7 @@ export class Glue {
     return this._textures[name];
   }
 
-  draw(source: GlueSourceType, options: GlueTextureDrawOptions): void {
+  draw(source: GlueSourceType, options?: GlueTextureDrawOptions): void {
     const texture = new GlueTexture(this.gl, this, source);
     texture.use();
     texture.draw(options);
@@ -119,19 +120,11 @@ export class Glue {
       throw new Error('A program with this name already exists: ' + name);
     }
 
-    if (!fragmentShader) {
-      fragmentShader = defaultFragmentShader;
-    }
-
-    if (!vertexShader) {
-      vertexShader = defaultVertexShader;
-    }
-
     const program = new GlueProgram(
       this.gl,
       this,
-      fragmentShader,
-      vertexShader
+      fragmentShader || defaultFragmentShader,
+      vertexShader || defaultVertexShader
     );
 
     program.setSize(this._width, this._height);
@@ -153,6 +146,23 @@ export class Glue {
   program(name: string): GlueProgram | undefined {
     this.checkDisposed();
     return this._programs[name];
+  }
+
+  apply(
+    fragmentShader?: string,
+    vertexShader?: string,
+    uniforms?: Record<string, GlueUniformValue>
+  ): void {
+    const program = new GlueProgram(
+      this.gl,
+      this,
+      fragmentShader || defaultFragmentShader,
+      vertexShader || defaultVertexShader
+    );
+
+    program.setSize(this._width, this._height);
+    program.apply(uniforms);
+    program.dispose();
   }
 
   render(): void {

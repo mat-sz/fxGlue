@@ -1,6 +1,6 @@
 import { Glue } from './Glue';
 import { GluePreprocessor } from './GluePreprocessor';
-import { GlueUniforms } from './GlueUniforms';
+import { GlueUniforms, GlueUniformValue } from './GlueUniforms';
 
 const rectangleBuffer = new Float32Array([
   -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1,
@@ -115,7 +115,7 @@ export class GlueProgram {
     this.uniforms.set('iResolution', [width, height, 1]);
   }
 
-  apply(): void {
+  apply(uniforms?: Record<string, GlueUniformValue>): void {
     this.checkDisposed();
 
     this.glue.switchFramebuffer();
@@ -129,6 +129,10 @@ export class GlueProgram {
     gl.useProgram(this._program);
 
     this.uniforms.set('iResolution', [this._width, this._height, 1]);
+
+    if (uniforms) {
+      this.uniforms.setAll(uniforms);
+    }
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
