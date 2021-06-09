@@ -108,11 +108,11 @@ export class Glue {
     }
   }
 
-  registerImage(name: string, image: HTMLImageElement): void {
+  registerImage(name: string, source: HTMLImageElement): void {
     this.checkDisposed();
 
-    if (!image.complete || image.naturalHeight === 0) {
-      throw new Error('Image is not loaded.');
+    if (!source.complete || source.naturalHeight === 0) {
+      throw new Error('Source is not loaded.');
     }
 
     if (this._textures[name]) {
@@ -124,11 +124,11 @@ export class Glue {
     const texture = this.createTexture(target);
 
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
 
     this._textures[name] = texture;
-    this._textureSizes[name] = [image.naturalWidth, image.naturalHeight];
-    this._textureSources[name] = image;
+    this._textureSizes[name] = [source.naturalWidth, source.naturalHeight];
+    this._textureSources[name] = source;
   }
 
   useImage(name: string): void {
@@ -140,6 +140,36 @@ export class Glue {
     gl.activeTexture(gl.TEXTURE1);
 
     gl.bindTexture(gl.TEXTURE_2D, this._textures[name]);
+  }
+
+  updateImage(name: string, source?: HTMLImageElement): void {
+    if (!this._textures[name]) {
+      throw new Error("A texture with this name doesn't exist: " + name);
+    }
+
+    if (source) {
+      if (!source.complete || source.naturalHeight === 0) {
+        throw new Error('Source is not loaded.');
+      }
+
+      this._textureSizes[name] = [source.naturalWidth, source.naturalHeight];
+      this._textureSources[name] = source;
+    }
+
+    const gl = this.gl;
+    gl.activeTexture(gl.TEXTURE1);
+
+    gl.bindTexture(gl.TEXTURE_2D, this._textures[name]);
+
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      this._textureSources[name]
+    );
   }
 
   deregisterImage(name: string): void {
