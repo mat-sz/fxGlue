@@ -1,5 +1,5 @@
 import { Glue } from './Glue';
-import { GluePreprocessor } from './GluePreprocessor';
+import { gluePreprocessShader } from './GluePreprocessor';
 import { GlueUniforms, GlueUniformValue } from './GlueUniforms';
 
 const rectangleBuffer = new Float32Array([
@@ -32,12 +32,18 @@ export class GlueProgram {
     private gl: WebGLRenderingContext,
     private glue: Glue,
     fragmentShaderSource: string,
-    vertexShaderSource: string
+    vertexShaderSource: string,
+    customImports: Record<string, string> = {}
   ) {
-    const fragmentResult = GluePreprocessor.processShader(fragmentShaderSource);
-    const vertexResult = GluePreprocessor.processShader(
+    const fragmentResult = gluePreprocessShader(
+      fragmentShaderSource,
+      false,
+      customImports
+    );
+    const vertexResult = gluePreprocessShader(
       vertexShaderSource,
-      true
+      true,
+      customImports
     );
 
     const program = gl.createProgram();

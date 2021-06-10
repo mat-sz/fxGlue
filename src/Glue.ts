@@ -12,6 +12,7 @@ import { GlueSourceType } from './GlueUtils';
 export class Glue {
   private _programs: Record<string, GlueProgram> = {};
   private _textures: Record<string, GlueTexture> = {};
+  private _imports: Record<string, string> = {};
   private _width = 0;
   private _height = 0;
   private _renderTextures: WebGLTexture[] = [];
@@ -168,7 +169,8 @@ export class Glue {
       this.gl,
       this,
       fragmentShader || defaultFragmentShader,
-      vertexShader || defaultVertexShader
+      vertexShader || defaultVertexShader,
+      this._imports
     );
 
     this._programs[name] = program;
@@ -222,7 +224,8 @@ export class Glue {
       this.gl,
       this,
       fragmentShader || defaultFragmentShader,
-      vertexShader || defaultVertexShader
+      vertexShader || defaultVertexShader,
+      this._imports
     );
 
     program.apply(uniforms);
@@ -270,6 +273,28 @@ export class Glue {
     this._renderTextures = [];
     this._programs = {};
     this._disposed = true;
+  }
+
+  /**
+   * Registers a GLSL partial as an import to be used with the @use syntax.
+   * Unlike other register functions, this will replace the currently registered import with the same name.
+   * @param name Name of the partial.
+   * @param source Source of the partial.
+   */
+  registerImport(name: string, source: string): void {
+    this.checkDisposed();
+
+    this._imports[name] = source;
+  }
+
+  /**
+   * Removes a GLSL partial from registered imports
+   * @param name Name of the partial.
+   */
+  deregisterImport(name: string): void {
+    this.checkDisposed();
+
+    delete this._imports[name];
   }
 
   /**

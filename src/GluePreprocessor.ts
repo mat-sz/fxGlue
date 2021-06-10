@@ -41,53 +41,58 @@ export interface GluePreprocessorResult {
   source: string;
 }
 
-export class GluePreprocessor {
-  /**
-   * Preprocesses the Glue-compatible GLSL shader source.
-   * @param source Shader source.
-   * @param vertex Flag whether the shader source belongs to a vertex shader.
-   * @returns Result containing line map (for debugging) and a processed source.
-   */
-  static processShader(source: string, vertex = false): GluePreprocessorResult {
-    let processedShader = shaderPrefix;
-    if (vertex) {
-      processedShader += 'attribute vec3 position;\n';
-    }
+/**
+ * Preprocesses the Glue-compatible GLSL shader source.
+ * @param source Shader source.
+ * @param vertex Flag whether the shader source belongs to a vertex shader.
+ * @returns Result containing line map (for debugging) and a processed source.
+ */
+export function gluePreprocessShader(
+  source: string,
+  vertex = false,
+  customImports: Record<string, string> = {}
+): GluePreprocessorResult {
+  let processedShader = shaderPrefix;
+  if (vertex) {
+    processedShader += 'attribute vec3 position;\n';
+  }
 
-    // Uniforms
-    processedShader += 'uniform sampler2D iTexture;\n';
-    processedShader += 'uniform vec2 iResolution;\n';
+  // Uniforms
+  processedShader += 'uniform sampler2D iTexture;\n';
+  processedShader += 'uniform vec2 iResolution;\n';
 
-    const lines = source.split('\n');
-    const lineMap: Record<number, number> = {};
+  const lines = source.split('\n');
+  const lineMap: Record<number, number> = {};
 
-    let currentInputLine = 0;
-    let currentOutputLine = processedShader.split('\n').length;
-    const included: string[] = [];
+  let currentInputLine = 0;
+  let currentOutputLine = processedShader.split('\n').length;
+  const included: string[] = [];
 
-    for (const line of lines) {
-      let trimmed = line.trim();
-      if (trimmed.startsWith('@use ')) {
-        trimmed = trimmed.replace('@use ', '');
-        if (imports[trimmed] && !included.includes(trimmed)) {
-          processedShader += imports[trimmed] + '\n';
-          currentOutputLine = processedShader.split('\n').length;
-          included.push(trimmed);
-        }
-
-        currentInputLine++;
-        continue;
+  for (const line of lines) {
+    let trimmed = line.trim();
+    if (trimmed.startsWith('@use ')) {
+      trimmed = trimmed.replace('@use ', '');
+      if (
+        (customImports[trimmed] || imports[trimmed]) &&
+        !included.includes(trimmed)
+      ) {
+        processedShader += (customImports[trimmed] || imports[trimmed]) + '\n';
+        currentOutputLine = processedShader.split('\n').length;
+        included.push(trimmed);
       }
 
-      processedShader += line + '\n';
-      lineMap[currentOutputLine] = currentInputLine;
       currentInputLine++;
-      currentOutputLine++;
+      continue;
     }
 
-    return {
-      lineMap,
-      source: processedShader,
-    };
+    processedShader += line + '\n';
+    lineMap[currentOutputLine] = currentInputLine;
+    currentInputLine++;
+    currentOutputLine++;
   }
+
+  return {
+    lineMap,
+    source: processedShader,
+  };
 }

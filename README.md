@@ -94,6 +94,8 @@ There are two partials included with fxGlue: math and wrap.
 
 ## Partials
 
+Custom partials can be registered by calling `registerImport`.
+
 ### math
 
 Includes math constants and functions.
