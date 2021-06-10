@@ -139,7 +139,7 @@ export class GlueProgram {
 
     gl.useProgram(this._program);
 
-    this.uniforms.set('iResolution', [width, height, 1]);
+    this.uniforms.set('iResolution', [width, height]);
 
     if (uniforms) {
       this.uniforms.setAll(uniforms);

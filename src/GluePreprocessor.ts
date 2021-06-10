@@ -56,7 +56,7 @@ export class GluePreprocessor {
 
     // Uniforms
     processedShader += 'uniform sampler2D iTexture;\n';
-    processedShader += 'uniform vec3 iResolution;\n';
+    processedShader += 'uniform vec2 iResolution;\n';
 
     const lines = source.split('\n');
     const lineMap: Record<number, number> = {};

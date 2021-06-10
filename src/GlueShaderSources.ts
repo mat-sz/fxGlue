@@ -8,7 +8,7 @@ export enum GlueBlendMode {
 
 export const defaultFragmentShader = `void main()
 {
-  vec2 p = gl_FragCoord.xy / iResolution.xy;
+  vec2 p = gl_FragCoord.xy / iResolution;
   gl_FragColor = texture2D(iTexture, p);
 }`;
 
@@ -25,12 +25,12 @@ uniform float iOpacity;
 
 void main()
 {
-  vec2 p = gl_FragCoord.xy / iResolution.xy;
-  vec2 uv = gl_FragCoord.xy / iResolution.xy;
+  vec2 p = gl_FragCoord.xy / iResolution;
+  vec2 uv = gl_FragCoord.xy / iResolution;
 
   uv.x -= iOffset.x;
   uv.y += iOffset.y - 1.0 + iSize.y / iResolution.y;
-  uv *= iResolution.xy / iSize.xy;
+  uv *= iResolution / iSize;
 
   vec4 src = texture2D(iTexture, p);
   gl_FragColor = src;

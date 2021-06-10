@@ -35,7 +35,7 @@ uniform float iRed;
 
 void main()
 {
-  vec2 p = gl_FragCoord.xy / iResolution.xy;
+  vec2 p = gl_FragCoord.xy / iResolution;
   gl_FragColor = texture2D(iTexture, p);
   gl_FragColor.r = iRed;
 }`;
@@ -76,7 +76,7 @@ fxGlue alters the GLSL syntax and adds a few uniforms and one attribute out of t
 
 The shader source **must not** include those uniforms in the code. They're provided by fxGlue and must be used as such.
 
-- _vec3_ iResolution - resolution of the input texture, usually used to normalize gl_FragCoord as such: `gl_FragCoord.xy / iResolution.xy`.
+- _vec2_ iResolution - resolution of the input texture, usually used to normalize gl_FragCoord as such: `gl_FragCoord.xy / iResolution`.
 - _sampler2D_ iTexture - input texture, either output of the previously applied program or drawn texture.
 
 Vertex shaders also include a `position` attribute. (_vec3_ position).
