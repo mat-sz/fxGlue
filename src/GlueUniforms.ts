@@ -1,4 +1,9 @@
-export type GlueUniformValue = number | boolean | Float32List | Int32List;
+export type GlueUniformValue =
+  | string
+  | number
+  | boolean
+  | Float32List
+  | Int32List;
 
 interface GlueUniformInfo {
   type: number;
@@ -9,6 +14,12 @@ interface GlueUniformInfo {
 export class GlueUniforms {
   private uniforms: Record<string, GlueUniformInfo> = {};
 
+  /**
+   * Creates a new GlueUniforms instance.
+   * This constructor should not be called from outside of the Glue class.
+   * @param gl WebGL context.
+   * @param glue Glue instance.
+   */
   constructor(
     private gl: WebGLRenderingContext,
     private program: WebGLProgram
@@ -33,15 +44,31 @@ export class GlueUniforms {
     }
   }
 
+  /**
+   * Get last uniform value.
+   * NOTE: This will not reflect the current state of WebGL
+   * if the value is changed outside of this class.
+   * @param name Uniform name.
+   * @returns The value.
+   */
   get(name: string): GlueUniformValue | undefined {
     return this.uniforms[name]?.lastValue;
   }
 
+  /**
+   * Sets the uniform to this value.
+   * @param name Uniform name.
+   * @param value Value. String values are ONLY accepted for vec3/vec4 color uniforms in form of a hex string (#FFFFFF).
+   */
   set(name: string, value: GlueUniformValue): void {
     this.gl.useProgram(this.program);
     this.setOne(name, value);
   }
 
+  /**
+   * Sets all uniforms in the object where key is the uniform name and value is the value to be set.
+   * @param object Object with values. String values are ONLY accepted for vec3/vec4 color uniforms in form of a hex string (#FFFFFF).
+   */
   setAll(object: Record<string, GlueUniformValue>): void {
     this.gl.useProgram(this.program);
     for (const key of Object.keys(object)) {

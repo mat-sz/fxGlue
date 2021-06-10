@@ -1,13 +1,43 @@
 import { Glue } from './Glue';
 import { GlueBlendMode } from './GlueShaderSources';
-import { GlueUtils, GlueSourceType } from './GlueUtils';
+import {
+  glueIsSourceLoaded,
+  glueGetSourceDimensions,
+  GlueSourceType,
+} from './GlueUtils';
 
+/**
+ * Draw options for textures.
+ */
 export interface GlueTextureDrawOptions {
+  /**
+   * Horizontal offset in pixels.
+   */
   x?: number;
+
+  /**
+   * Vertical offset in pixels.
+   */
   y?: number;
+
+  /**
+   * Width in pixels.
+   */
   width?: number;
+
+  /**
+   * Height in pixels.
+   */
   height?: number;
+
+  /**
+   * Opacity from 0.0 to 1.0.
+   */
   opacity?: number;
+
+  /**
+   * Blend mode.
+   */
   mode?: GlueBlendMode;
 }
 
@@ -17,12 +47,19 @@ export class GlueTexture {
   private _disposed = false;
   private _texture: WebGLTexture;
 
+  /**
+   * Creates a new GlueTexture instance.
+   * This constructor should not be called from outside of the Glue class.
+   * @param gl WebGL context.
+   * @param glue Glue instance.
+   * @param _source HTMLImageElement or HTMLVideoElement containing the source. Must be loaded.
+   */
   constructor(
     private gl: WebGLRenderingContext,
     private glue: Glue,
     private _source: GlueSourceType
   ) {
-    if (!GlueUtils.isSourceLoaded(_source)) {
+    if (!glueIsSourceLoaded(_source)) {
       throw new Error('Source is not loaded.');
     }
 
@@ -40,11 +77,15 @@ export class GlueTexture {
     );
 
     this._texture = texture;
-    const [width, height] = GlueUtils.getSourceDimensions(_source);
+    const [width, height] = glueGetSourceDimensions(_source);
     this._width = width;
     this._height = height;
   }
 
+  /**
+   * Draws the texture onto the current framebuffer.
+   * @param options Drawing options.
+   */
   draw({
     x = 0,
     y = 0,
@@ -74,15 +115,20 @@ export class GlueTexture {
     });
   }
 
+  /**
+   * Updates the current texture.
+   * This is useful in case of video textures, where
+   * this action will set the texture to the current playback frame.
+   */
   update(source?: GlueSourceType): void {
     this.checkDisposed();
 
     if (source) {
-      if (!GlueUtils.isSourceLoaded(source)) {
+      if (!glueIsSourceLoaded(source)) {
         throw new Error('Source is not loaded.');
       }
 
-      const [width, height] = GlueUtils.getSourceDimensions(source);
+      const [width, height] = glueGetSourceDimensions(source);
       this._width = width;
       this._height = height;
       this._source = source;
@@ -104,6 +150,9 @@ export class GlueTexture {
     );
   }
 
+  /**
+   * Selects and binds the current texture to TEXTURE1.
+   */
   use(): void {
     this.checkDisposed();
 
@@ -113,13 +162,18 @@ export class GlueTexture {
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
   }
 
+  /**
+   * Disposes of this GlueTexture object.
+   * After this operation, the GlueTexture object may not be utilized further.
+   * A new GlueTexture instance must be created for further use.
+   */
   dispose(): void {
     this.gl.deleteTexture(this._texture);
   }
 
   private checkDisposed() {
     if (this._disposed) {
-      throw new Error('This GlueProgram object has been disposed.');
+      throw new Error('This GlueTexture object has been disposed.');
     }
   }
 }

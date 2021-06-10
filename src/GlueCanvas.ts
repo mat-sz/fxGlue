@@ -1,15 +1,23 @@
 import { Glue } from './Glue';
-import { GlueUtils } from './GlueUtils';
+import { glueGetWebGLContext } from './GlueUtils';
 
 export class GlueCanvas {
   readonly canvas: HTMLCanvasElement;
   readonly glue: Glue;
 
+  /**
+   * Creates a new canvas and a new Glue instance.
+   */
   constructor() {
     this.canvas = document.createElement('canvas');
-    this.glue = new Glue(GlueUtils.getWebGLContext(this.canvas));
+    this.glue = new Glue(glueGetWebGLContext(this.canvas));
   }
 
+  /**
+   * Sets the size of the output. Must be called before everything else.
+   * @param width Width (px).
+   * @param height Height (px).
+   */
   setSize(width: number, height: number): void {
     this.canvas.width = width;
     this.canvas.height = height;

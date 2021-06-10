@@ -1,3 +1,6 @@
+/**
+ * Blend mode. Do not use the string values directly.
+ */
 export enum GlueBlendMode {
   NORMAL = 'normal',
   MULTIPLY = 'multiply',

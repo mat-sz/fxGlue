@@ -42,6 +42,12 @@ export interface GluePreprocessorResult {
 }
 
 export class GluePreprocessor {
+  /**
+   * Preprocesses the Glue-compatible GLSL shader source.
+   * @param source Shader source.
+   * @param vertex Flag whether the shader source belongs to a vertex shader.
+   * @returns Result containing line map (for debugging) and a processed source.
+   */
   static processShader(source: string, vertex = false): GluePreprocessorResult {
     let processedShader = shaderPrefix;
     if (vertex) {

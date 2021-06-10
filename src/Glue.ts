@@ -7,7 +7,7 @@ import {
 } from './GlueShaderSources';
 import { GlueTexture, GlueTextureDrawOptions } from './GlueTexture';
 import { GlueUniformValue } from './GlueUniforms';
-import { GlueSourceType, GlueUtils } from './GlueUtils';
+import { GlueSourceType } from './GlueUtils';
 
 export class Glue {
   private _programs: Record<string, GlueProgram> = {};
@@ -20,28 +20,28 @@ export class Glue {
   private _final = false;
   private _disposed = false;
 
+  /**
+   * Create a new Glue instance around a given WebGL context.
+   * @param gl WebGL context obtained by calling .getContext('webgl') or by using glueGetWebGLContext.
+   */
   constructor(private gl: WebGLRenderingContext) {
     this.registerProgram('_default');
     for (const mode of Object.values(GlueBlendMode) as GlueBlendMode[]) {
       this.registerProgram('_blend_' + mode, blendFragmentShaders[mode]);
     }
 
+    // Create two framebuffers to be swapped during rendering.
     this.addFramebuffer();
     this.addFramebuffer();
   }
 
-  setScale(scale: number): void {
-    this.checkDisposed();
-
-    this.setSize(this._width * scale, this._height * scale);
-  }
-
+  /**
+   * Sets the size of the output. Must be called before everything else.
+   * @param width Width (px).
+   * @param height Height (px).
+   */
   setSize(width: number, height: number): void {
     this.checkDisposed();
-
-    for (const program of Object.values(this._programs)) {
-      program.setSize(width, height);
-    }
 
     const gl = this.gl;
     gl.activeTexture(gl.TEXTURE0);
@@ -70,6 +70,26 @@ export class Glue {
     this._height = height;
   }
 
+  /**
+   * Output width (px).
+   */
+  get width(): number {
+    return this._width;
+  }
+
+  /**
+   * Output height (px).
+   */
+  get height(): number {
+    return this._height;
+  }
+
+  /**
+   * Creates and registers a texture for later use.
+   * @param name Texture name (must not be registered already).
+   * @param source HTMLImageElement or HTMLVideoElement with the texture. Must be loaded.
+   * @returns A new GlueTexture instance.
+   */
   registerTexture(name: string, source: GlueSourceType): GlueTexture {
     this.checkDisposed();
 
@@ -77,15 +97,15 @@ export class Glue {
       throw new Error('A program with this name already exists: ' + name);
     }
 
-    if (!GlueUtils.isSourceLoaded(source)) {
-      throw new Error('Source is not loaded.');
-    }
-
     const texture = new GlueTexture(this.gl, this, source);
     this._textures[name] = texture;
     return texture;
   }
 
+  /**
+   * Removes a texture from registered textures and disposes it.
+   * @param name Name of the registered texture.
+   */
   deregisterTexture(name: string): void {
     this.checkDisposed();
 
@@ -93,15 +113,30 @@ export class Glue {
     delete this._textures[name];
   }
 
+  /**
+   * Checks if a registered texture with a given name is available.
+   * @param name Name of the registered texture.
+   * @returns Whether the texture is available or not.
+   */
   hasTexture(name: string): boolean {
     return !!this._textures[name];
   }
 
+  /**
+   * Retrieves a registered texture with a given name.
+   * @param name Name of the registered texture.
+   * @returns A GlueTexture instance or undefined if there is no texture with such name.
+   */
   texture(name: string): GlueTexture | undefined {
     this.checkDisposed();
     return this._textures[name];
   }
 
+  /**
+   * Draws a HTMLImageElement or a HTMLVideoElement without registering a new texture.
+   * @param source HTMLImageElement or HTMLVideoElement with the texture. Must be loaded.
+   * @param options Settings for how the texture should be painted: X/Y offset, width/height and more.
+   */
   draw(source: GlueSourceType, options?: GlueTextureDrawOptions): void {
     const texture = new GlueTexture(this.gl, this, source);
     texture.use();
@@ -109,6 +144,15 @@ export class Glue {
     texture.dispose();
   }
 
+  /**
+   * Creates and registers a WeBGL program for a later use.
+   * NOTE: Glue uses a preprocessor for its GLSL programs.
+   * Consult the documentation for more information.
+   * @param name Program name (must not be registered already).
+   * @param fragmentShader Glue-compatible GLSL fragment shader code.
+   * @param vertexShader Glue-compatible GLSL vertex shader code.
+   * @returns A new GlueProgram instance.
+   */
   registerProgram(
     name: string,
     fragmentShader?: string,
@@ -127,11 +171,14 @@ export class Glue {
       vertexShader || defaultVertexShader
     );
 
-    program.setSize(this._width, this._height);
     this._programs[name] = program;
     return program;
   }
 
+  /**
+   * Removes a program from registered programs and disposes it.
+   * @param name Name of the registered program.
+   */
   deregisterProgram(name: string): void {
     this.checkDisposed();
 
@@ -139,15 +186,33 @@ export class Glue {
     delete this._programs[name];
   }
 
+  /**
+   * Checks if a registered program with a given name is available.
+   * @param name Name of the registered program.
+   * @returns Whether the program is available or not.
+   */
   hasProgram(name: string): boolean {
     return !!this._programs[name];
   }
 
+  /**
+   * Retrieves a registered program with a given name.
+   * @param name Name of the registered program.
+   * @returns A GlueProgram instance or undefined if there is no program with such name.
+   */
   program(name: string): GlueProgram | undefined {
     this.checkDisposed();
     return this._programs[name];
   }
 
+  /**
+   * Applies a Glue-compatible GLSL shader without registering a new program.
+   * NOTE: Glue uses a preprocessor for its GLSL programs.
+   * Consult the documentation for more information.
+   * @param fragmentShader Glue-compatible GLSL fragment shader code.
+   * @param vertexShader Glue-compatible GLSL vertex shader code.
+   * @param uniforms Uniform values (optional).
+   */
   apply(
     fragmentShader?: string,
     vertexShader?: string,
@@ -160,17 +225,26 @@ export class Glue {
       vertexShader || defaultVertexShader
     );
 
-    program.setSize(this._width, this._height);
     program.apply(uniforms);
     program.dispose();
   }
 
+  /**
+   * Renders the final image to the canvas. Must be called after everything else.
+   * Other calls may still render to the canvas, there is no guarantee that
+   * nothing will be rendered before this function is called.
+   */
   render(): void {
     this.checkDisposed();
     this._final = true;
     this.program('_default')?.apply();
   }
 
+  /**
+   * Disposes of this Glue object, all of its associated textures, programs and framebuffers.
+   * After this operation, the Glue object may not be utilized further. A new Glue instance
+   * must be created for further use.
+   */
   dispose(): void {
     if (this._disposed) {
       return;
@@ -188,12 +262,21 @@ export class Glue {
       program.dispose();
     }
 
+    for (const texture of Object.values(this._textures)) {
+      texture.dispose();
+    }
+
     this._renderFramebuffers = [];
     this._renderTextures = [];
     this._programs = {};
     this._disposed = true;
   }
 
+  /**
+   * Internal function for custom GlueProgram development.
+   * Do not use or expect this function to be available
+   * in this form forever.
+   */
   switchFramebuffer(): void {
     this.checkDisposed();
 
@@ -213,6 +296,11 @@ export class Glue {
     this._final = false;
   }
 
+  /**
+   * Internal function for custom GlueProgram development.
+   * Do not use or expect this function to be available
+   * in this form forever.
+   */
   resetFramebuffer(): void {
     this.checkDisposed();
 
@@ -220,6 +308,11 @@ export class Glue {
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
+  /**
+   * Internal function for custom GlueProgram development.
+   * Do not use or expect this function to be available
+   * in this form forever.
+   */
   createTexture(target?: number): WebGLTexture {
     const gl = this.gl;
     const texture = gl.createTexture();

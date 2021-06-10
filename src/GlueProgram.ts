@@ -16,13 +16,18 @@ export class GlueProgram {
 
   private _vertexShader?: WebGLShader;
   private _fragmentShader?: WebGLShader;
-  private _vertexShaderErrors: Record<number, string[]> = {};
-  private _fragmentShaderErrors: Record<number, string[]> = {};
   private _program: WebGLProgram;
-  private _width = 0;
-  private _height = 0;
   private _disposed = false;
 
+  /**
+   * Creates a new GlueProgram instance.
+   * This constructor should not be called from outside of the Glue class.
+   * @param gl WebGL context.
+   * @param glue Glue instance.
+   * @param fragmentShaderSource Glue-compatible GLSL fragment shader source.
+   * @param vertexShaderSource Glue-compatible GLSL vertex shader source.
+   * @throws When compilation fails a GlueProgramError (containing vertexShaderErrors and fragmentShaderErrors properties) will be thrown.
+   */
   constructor(
     private gl: WebGLRenderingContext,
     private glue: Glue,
@@ -43,11 +48,14 @@ export class GlueProgram {
 
     this._program = program;
 
+    let _vertexShaderErrors: Record<number, string[]> = {};
+    let _fragmentShaderErrors: Record<number, string[]> = {};
+
     let shader = this.attachShader(fragmentResult.source, gl.FRAGMENT_SHADER);
 
     if (shader) {
       if (typeof shader === 'string') {
-        this._fragmentShaderErrors = this.parseErrors(
+        _fragmentShaderErrors = this.parseErrors(
           shader,
           fragmentResult.lineMap
         );
@@ -60,10 +68,7 @@ export class GlueProgram {
 
     if (shader) {
       if (typeof shader === 'string') {
-        this._vertexShaderErrors = this.parseErrors(
-          shader,
-          vertexResult.lineMap
-        );
+        _vertexShaderErrors = this.parseErrors(shader, vertexResult.lineMap);
       } else {
         this._vertexShader = shader;
       }
@@ -72,11 +77,28 @@ export class GlueProgram {
     if (!this._fragmentShader || !this._vertexShader) {
       gl.deleteProgram(program);
 
+      let errors = '';
+      for (const line of Object.keys(_vertexShaderErrors)) {
+        errors +=
+          'Vertex shader, line ' +
+          line +
+          ': ' +
+          _vertexShaderErrors[parseInt(line)].join(',');
+      }
+
+      for (const line of Object.keys(_fragmentShaderErrors)) {
+        errors +=
+          'Fragment shader, line ' +
+          line +
+          ': ' +
+          _fragmentShaderErrors[parseInt(line)].join(',');
+      }
+
       const error = new GlueProgramError(
-        'Could not compile WebGL shader. Additional information is available in the vertexShaderErrors and fragmentShaderErrors properties of this Error object.'
+        'Could not compile WebGL shader.\n\n' + errors
       );
-      error.vertexShaderErrors = this._vertexShaderErrors;
-      error.fragmentShaderErrors = this._fragmentShaderErrors;
+      error.vertexShaderErrors = _vertexShaderErrors;
+      error.fragmentShaderErrors = _fragmentShaderErrors;
       throw error;
     }
 
@@ -84,7 +106,7 @@ export class GlueProgram {
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
       const info = gl.getProgramInfoLog(program);
-      throw new Error('Could not compile WebGL program. \n\n' + info);
+      throw new Error('Could not compile WebGL program.\n\n' + info);
     }
 
     this.uniforms = new GlueUniforms(gl, program);
@@ -98,37 +120,26 @@ export class GlueProgram {
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
   }
 
-  get vertexShaderErrors(): Record<number, string[]> {
-    return this._vertexShaderErrors;
-  }
-
-  get fragmentShaderErrors(): Record<number, string[]> {
-    return this._fragmentShaderErrors;
-  }
-
-  setSize(width: number, height: number): void {
-    this.checkDisposed();
-
-    this._width = width;
-    this._height = height;
-
-    this.uniforms.set('iResolution', [width, height, 1]);
-  }
-
+  /**
+   * Applies the program to the current framebuffer.
+   * @param uniforms Uniform values (optional).
+   */
   apply(uniforms?: Record<string, GlueUniformValue>): void {
     this.checkDisposed();
 
     this.glue.switchFramebuffer();
 
+    const { width, height } = this.glue;
     const gl = this.gl;
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+    gl.viewport(0, 0, width, height);
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.useProgram(this._program);
 
-    this.uniforms.set('iResolution', [this._width, this._height, 1]);
+    this.uniforms.set('iResolution', [width, height, 1]);
 
     if (uniforms) {
       this.uniforms.setAll(uniforms);
@@ -137,6 +148,11 @@ export class GlueProgram {
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
 
+  /**
+   * Disposes of this GlueProgram object.
+   * After this operation, the GlueProgram object may not be utilized further.
+   * A new GlueProgram instance must be created for further use.
+   */
   dispose(): void {
     if (this._disposed) {
       return;
