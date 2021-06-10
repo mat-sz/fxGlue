@@ -67,3 +67,80 @@ glue.dispose();
 glue.deregisterProgram('filter');
 glue.deregisterTexture('image');
 ```
+
+## GLSL additions
+
+### Uniforms
+
+fxGlue alters the GLSL syntax and adds a few uniforms and one attribute out of the box.
+
+The shader source **must not** include those uniforms in the code. They're provided by fxGlue and must be used as such.
+
+- _vec3_ iResolution - resolution of the input texture, usually used to normalize gl_FragCoord as such: `gl_FragCoord.xy / iResolution.xy`.
+- _sampler2D_ iTexture - input texture, either output of the previously applied program or drawn texture.
+
+Vertex shaders also include a `position` attribute. (_vec3_ position).
+
+### Imports
+
+fxGlue includes a syntax for inclusion of modules.
+
+    @use math
+    @use wrap
+
+The `@use` statement must be the only one in a given line, must only contain one space before the module name and must contain only one module name. This statement must be used outside of blocks such as functions, before the imports are utilized, ideally at the beginning of the shader source.
+
+There are two partials included with fxGlue: math and wrap.
+
+## Partials
+
+### math
+
+Includes math constants and functions.
+
+```glsl
+#define PI 3.1415926538
+#define PI2 6.283185307179586
+#define PI_HALF 1.5707963267948966
+#define RECIPROCAL_PI 0.3183098861837907
+#define RECIPROCAL_PI2 0.15915494309189535
+#define EPSILON 1e-6
+#define E 2.718281828459045
+
+float pow2(const in float x)
+float pow3(const in float x)
+float pow4(const in float x)
+
+float atan2(const in float y, const in float x)
+float atan2(const in vec2 v)
+```
+
+### wrap
+
+Includes functions related to accessing textures.
+
+```glsl
+// Repeats a float from 0.0 to 1.0, in a mirrored tile fashion.
+float mirroredRepeat(const in float a)
+
+// Repeats the texture in a mirrored tile fashion.
+vec2 mirroredRepeat(const in vec2 uv)
+
+// Repeats a float from 0.0 to 1.0, in a tile fashion.
+float repeat(const in float a)
+
+// Repeats the texture in a tile fashion.
+vec2 repeat(const in vec2 uv)
+
+// Clips the texture within given bounds.
+float clip(const in vec2 v, const in vec4 bounds)
+
+// Clips the texture within 0.0;0.0 to 1.0;1.0.
+float clip(const in vec2 v)
+
+// Clips the texture within given bounds, smoothly, based on provided radius x.
+float clipSmooth(const in vec2 v, const in vec4 bounds, const in float x)
+
+// Clips the texture within 0.0;0.0 to 1.0;1.0, smoothly, based on provided radius x.
+float clipSmooth(const in vec2 v, const in float x)
+```
