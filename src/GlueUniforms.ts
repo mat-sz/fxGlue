@@ -77,7 +77,7 @@ export class GlueUniforms {
 
   /**
    * Sets all uniforms in the object where key is the uniform name and value is the value to be set.
-   * @param object Object with values. String values are ONLY accepted for vec3/vec4 color uniforms in form of a hex string (#FFFFFF).
+   * @param object Object with values. String values are ONLY accepted for vec3/vec4 color uniforms in form of a hex string (#FFFFFF) or sampler2D uniforms in form of the name of a registered texture.
    */
   setAll(object: Record<string, GlueUniformValue>): void {
     this.gl.useProgram(this.program);
