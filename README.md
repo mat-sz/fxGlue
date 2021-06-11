@@ -146,3 +146,24 @@ float clipSmooth(const in vec2 v, const in vec4 bounds, const in float x)
 // Clips the texture within 0.0;0.0 to 1.0;1.0, smoothly, based on provided radius x.
 float clipSmooth(const in vec2 v, const in float x)
 ```
+
+### color
+
+Includes HSL and HSV related functions.
+
+```glsl
+// Converts one color value.
+float hue2rgb(float f1, float f2, float hue)
+
+// Converts vec3(h, s, l) to vec3(r, g, b).
+vec3 hsl2rgb(vec3 hsl)
+
+// Converts vec3(h, s, v) to vec3(r, g, b).
+vec3 hsv2rgb(vec3 hsv)
+
+// Converts vec3(r, g, b) to vec3(h, s, l).
+vec3 rgb2hsl(vec3 rgb)
+
+// Converts vec3(r, g, b) to vec3(h, s, v).
+vec3 rgb2hsv(vec3 rgb)
+```
