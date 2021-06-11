@@ -115,7 +115,7 @@ export class GlueProgram {
       throw new Error('Could not compile WebGL program.\n\n' + info);
     }
 
-    this.uniforms = new GlueUniforms(gl, program);
+    this.uniforms = new GlueUniforms(gl, glue, program);
 
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);

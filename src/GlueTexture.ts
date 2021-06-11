@@ -151,13 +151,14 @@ export class GlueTexture {
   }
 
   /**
-   * Selects and binds the current texture to TEXTURE1.
+   * Selects and binds the current texture to TEXTURE1 or target.
+   * @param target gl.TEXTURE1 to gl.TEXTURE32 (default: gl.TEXTURE1).
    */
-  use(): void {
+  use(target?: number): void {
     this.checkDisposed();
 
     const gl = this.gl;
-    gl.activeTexture(gl.TEXTURE1);
+    gl.activeTexture(target || gl.TEXTURE1);
 
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
   }

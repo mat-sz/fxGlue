@@ -1,3 +1,5 @@
+import { Glue } from './Glue';
+
 export type GlueUniformValue =
   | string
   | number
@@ -9,6 +11,7 @@ interface GlueUniformInfo {
   type: number;
   location: WebGLUniformLocation;
   lastValue?: GlueUniformValue;
+  textureId?: number;
 }
 
 export class GlueUniforms {
@@ -22,10 +25,12 @@ export class GlueUniforms {
    */
   constructor(
     private gl: WebGLRenderingContext,
+    private glue: Glue,
     private program: WebGLProgram
   ) {
     const n = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
 
+    let textureId = 1;
     for (let i = 0; i < n; ++i) {
       const info = gl.getActiveUniform(program, i);
       if (!info) {
@@ -40,7 +45,12 @@ export class GlueUniforms {
       this.uniforms[info.name] = {
         type: info.type,
         location,
+        textureId: info.type === gl.SAMPLER_2D ? textureId : undefined,
       };
+
+      if (info.type === gl.SAMPLER_2D) {
+        textureId++;
+      }
     }
   }
 
@@ -83,36 +93,51 @@ export class GlueUniforms {
       return;
     }
 
-    if (
-      typeof value === 'string' &&
-      (uniform.type === this.gl.FLOAT_VEC3 ||
-        uniform.type === this.gl.FLOAT_VEC4)
-    ) {
-      if (value.length < 7) {
-        throw new Error('Invalid color value.');
-      }
-
-      const r = parseInt(value.slice(1, 3), 16) / 255;
-      const g = parseInt(value.slice(3, 5), 16) / 255;
-      const b = parseInt(value.slice(5, 7), 16) / 255;
-
+    if (typeof value === 'string') {
       if (
-        typeof r !== 'number' ||
-        typeof g !== 'number' ||
-        typeof b !== 'number'
+        uniform.type === this.gl.FLOAT_VEC3 ||
+        uniform.type === this.gl.FLOAT_VEC4
       ) {
-        throw new Error('Invalid color value.');
-      }
-
-      if (uniform.type === this.gl.FLOAT_VEC3) {
-        value = [r, g, b];
-      } else {
-        let a = parseInt(value.slice(7, 9), 16) / 255;
-        if (isNaN(a)) {
-          a = 1.0;
+        if (value.length < 7) {
+          throw new Error('Invalid color value.');
         }
 
-        value = [r, g, b, a];
+        const r = parseInt(value.slice(1, 3), 16) / 255;
+        const g = parseInt(value.slice(3, 5), 16) / 255;
+        const b = parseInt(value.slice(5, 7), 16) / 255;
+
+        if (
+          typeof r !== 'number' ||
+          typeof g !== 'number' ||
+          typeof b !== 'number'
+        ) {
+          throw new Error('Invalid color value.');
+        }
+
+        if (uniform.type === this.gl.FLOAT_VEC3) {
+          value = [r, g, b];
+        } else {
+          let a = parseInt(value.slice(7, 9), 16) / 255;
+          if (isNaN(a)) {
+            a = 1.0;
+          }
+
+          value = [r, g, b, a];
+        }
+      } else if (uniform.type === this.gl.SAMPLER_2D && uniform.textureId) {
+        const texture = this.glue.texture(value);
+        if (!texture) {
+          throw new Error(
+            `Registered texture of name '${value}' could not be found.`
+          );
+        }
+
+        texture.use(this.gl.TEXTURE0 + uniform.textureId);
+        value = uniform.textureId;
+      } else {
+        throw new Error(
+          'String values are only supported for vec3/vec4 types (in form of hex color strings) or sampler2D types (in form of registered texture name).'
+        );
       }
     }
 
