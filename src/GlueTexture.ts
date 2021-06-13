@@ -64,7 +64,7 @@ export class GlueTexture {
     }
 
     const target = gl.TEXTURE1;
-    const texture = glue.createTexture(target);
+    const texture = glue._createTexture(target);
 
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(

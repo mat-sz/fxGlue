@@ -133,7 +133,7 @@ export class GlueProgram {
   apply(uniforms?: Record<string, GlueUniformValue>): void {
     this.checkDisposed();
 
-    this.glue.switchFramebuffer();
+    this.glue._switchFramebuffer();
 
     const { width, height } = this.glue;
     const gl = this.gl;

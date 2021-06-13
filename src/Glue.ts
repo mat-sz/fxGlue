@@ -302,7 +302,7 @@ export class Glue {
    * Do not use or expect this function to be available
    * in this form forever.
    */
-  switchFramebuffer(): void {
+  _switchFramebuffer(): void {
     this.checkDisposed();
 
     const gl = this.gl;
@@ -326,19 +326,7 @@ export class Glue {
    * Do not use or expect this function to be available
    * in this form forever.
    */
-  resetFramebuffer(): void {
-    this.checkDisposed();
-
-    const gl = this.gl;
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-  }
-
-  /**
-   * Internal function for custom GlueProgram development.
-   * Do not use or expect this function to be available
-   * in this form forever.
-   */
-  createTexture(target?: number): WebGLTexture {
+  _createTexture(target?: number): WebGLTexture {
     const gl = this.gl;
     const texture = gl.createTexture();
 
@@ -379,7 +367,7 @@ export class Glue {
     height: number
   ): readonly [WebGLTexture, WebGLFramebuffer] {
     const gl = this.gl;
-    const texture = this.createTexture();
+    const texture = this._createTexture();
 
     gl.texImage2D(
       gl.TEXTURE_2D,
