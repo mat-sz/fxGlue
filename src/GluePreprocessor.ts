@@ -146,6 +146,14 @@ vec3 rgb2hsv(vec3 rgb) {
   }
   return hsv;
 }
+
+float luma(const in vec3 color) {
+  return dot(color, vec3(0.299, 0.587, 0.114));
+}
+
+float luma(const in vec4 color) {
+  return luma(color.rgb);
+}
 `,
 };
 
