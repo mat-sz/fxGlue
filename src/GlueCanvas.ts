@@ -4,13 +4,15 @@ import { glueGetWebGLContext } from './GlueUtils';
 export class GlueCanvas {
   readonly canvas: HTMLCanvasElement;
   readonly glue: Glue;
+  readonly gl: WebGLRenderingContext;
 
   /**
    * Creates a new canvas and a new Glue instance.
    */
   constructor(options?: WebGLContextAttributes) {
     this.canvas = document.createElement('canvas');
-    this.glue = new Glue(glueGetWebGLContext(this.canvas, options));
+    this.gl = glueGetWebGLContext(this.canvas, options);
+    this.glue = new Glue(this.gl);
   }
 
   /**
