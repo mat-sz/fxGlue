@@ -8,9 +8,9 @@ export class GlueCanvas {
   /**
    * Creates a new canvas and a new Glue instance.
    */
-  constructor() {
+  constructor(options?: WebGLContextAttributes) {
     this.canvas = document.createElement('canvas');
-    this.glue = new Glue(glueGetWebGLContext(this.canvas));
+    this.glue = new Glue(glueGetWebGLContext(this.canvas, options));
   }
 
   /**

@@ -21,11 +21,16 @@ export function glueIsWebGLAvailable(): boolean {
  * @returns The WebGL context.
  */
 export function glueGetWebGLContext(
-  canvas: HTMLCanvasElement
+  canvas: HTMLCanvasElement,
+  options?: WebGLContextAttributes
 ): WebGLRenderingContext {
-  const options = {
-    premultipliedAlpha: false,
-  };
+  if (options) {
+    options.premultipliedAlpha = false;
+  } else {
+    options = {
+      premultipliedAlpha: false,
+    };
+  }
 
   const context =
     canvas.getContext('webgl', options) ||
