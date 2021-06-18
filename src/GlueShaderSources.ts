@@ -4,6 +4,7 @@
 export enum GlueBlendMode {
   NORMAL = 'normal',
   MULTIPLY = 'multiply',
+  SCREEN = 'screen',
   OVERLAY = 'overlay',
   HARD_LIGHT = 'hard_light',
   SOFT_LIGHT = 'soft_light',
@@ -76,6 +77,13 @@ export const blendFragmentShaders: Record<GlueBlendMode, string> = {
     '@source',
     `if (dest.a > 0.0) {
       gl_FragColor.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
+      gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);
+    }`
+  ),
+  [GlueBlendMode.SCREEN]: blendBaseFragmentShader.replace(
+    '@source',
+    `if (dest.a > 0.0) {
+      gl_FragColor.rgb = (dest.rgb / dest.a) + ((1.0 - src.a) + src.rgb) - (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
       gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);
     }`
   ),
