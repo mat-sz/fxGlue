@@ -10,6 +10,8 @@ export enum GlueBlendMode {
   SOFT_LIGHT = 'soft_light',
   DARKEN = 'darken',
   LIGHTEN = 'lighten',
+  COLOR_DODGE = 'color_dodge',
+  COLOR_BURN = 'color_burn',
 }
 
 export const defaultFragmentShader = `void main()
@@ -189,6 +191,44 @@ export const blendFragmentShaders: Record<GlueBlendMode, string> = {
       gl_FragColor = src;
     } else {
       gl_FragColor = dest;
+    }
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.COLOR_DODGE]: blendBaseFragmentShader.replace(
+    '@source',
+    `if (src.r < 1.0) {
+      gl_FragColor.r = min(1.0, src.r/(1.0 - dest.r));
+    } else {
+      gl_FragColor.r = 1.0;
+    }
+    if (src.g < 1.0) {
+      gl_FragColor.g = min(1.0, src.g/(1.0 - dest.g));
+    } else {
+      gl_FragColor.g = 1.0;
+    }
+    if (src.b < 1.0) {
+      gl_FragColor.b = min(1.0, src.b/(1.0 - dest.b));
+    } else {
+      gl_FragColor.b = 1.0;
+    }
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.COLOR_BURN]: blendBaseFragmentShader.replace(
+    '@source',
+    `if (dest.r > 0.0) {
+      gl_FragColor.r = 1.0 - min(1.0, (1.0 - src.r)/dest.r);
+    } else {
+      gl_FragColor.r = 0.0;
+    }
+    if (dest.g > 0.0) {
+      gl_FragColor.g = 1.0 - min(1.0, (1.0 - src.g)/dest.g);
+    } else {
+      gl_FragColor.g = 0.0;
+    }
+    if (dest.b > 0.0) {
+      gl_FragColor.b = 1.0 - min(1.0, (1.0 - src.b)/dest.b);
+    } else {
+      gl_FragColor.b = 0.0;
     }
     gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
   ),
