@@ -14,6 +14,10 @@ export enum GlueBlendMode {
   COLOR_BURN = 'color_burn',
   DIFFERENCE = 'difference',
   EXCLUSION = 'exclusion',
+  HUE = 'hue',
+  SATURATION = 'saturation',
+  COLOR = 'color',
+  LUMINOSITY = 'luminosity',
 }
 
 export const defaultFragmentShader = `void main()
@@ -244,6 +248,38 @@ export const blendFragmentShaders: Record<GlueBlendMode, string> = {
   [GlueBlendMode.EXCLUSION]: blendBaseFragmentShader.replace(
     '@source',
     `gl_FragColor.rgb = src.rgb + dest.rgb - 2.0 * src.rgb * dest.rgb;
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.HUE]: blendBaseFragmentShader.replace(
+    '@source',
+    `vec3 hsl_src = rgb2hsl(src.rgb);
+    vec3 hsl_dest = rgb2hsl(dest.rgb);
+    hsl_src.x = hsl_dest.x;
+    gl_FragColor.rgb = hsl2rgb(hsl_src);
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.SATURATION]: blendBaseFragmentShader.replace(
+    '@source',
+    `vec3 hsl_src = rgb2hsl(src.rgb);
+    vec3 hsl_dest = rgb2hsl(dest.rgb);
+    hsl_src.y = hsl_dest.y;
+    gl_FragColor.rgb = hsl2rgb(hsl_src);
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.COLOR]: blendBaseFragmentShader.replace(
+    '@source',
+    `vec3 hsl_src = rgb2hsl(src.rgb);
+    vec3 hsl_dest = rgb2hsl(dest.rgb);
+    hsl_src.xy = hsl_dest.xy;
+    gl_FragColor.rgb = hsl2rgb(hsl_src);
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.LUMINOSITY]: blendBaseFragmentShader.replace(
+    '@source',
+    `vec3 hsl_src = rgb2hsl(src.rgb);
+    vec3 hsl_dest = rgb2hsl(dest.rgb);
+    hsl_src.z = hsl_dest.z;
+    gl_FragColor.rgb = hsl2rgb(hsl_src);
     gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
   ),
 };
