@@ -8,6 +8,8 @@ export enum GlueBlendMode {
   OVERLAY = 'overlay',
   HARD_LIGHT = 'hard_light',
   SOFT_LIGHT = 'soft_light',
+  DARKEN = 'darken',
+  LIGHTEN = 'lighten',
 }
 
 export const defaultFragmentShader = `void main()
@@ -21,6 +23,7 @@ export const defaultVertexShader = `void main() {
 }`;
 
 const blendBaseFragmentShader = `@use wrap
+@use color
 
 uniform sampler2D iImage;
 uniform vec2 iSize;
@@ -42,6 +45,10 @@ void main()
   vec4 dest = texture2D(iImage, uv);
   dest.a *= iOpacity;
   dest *= clip(uv);
+
+  if (dest.a == 0.0) {
+    return;
+  }
   
   @source
 }`;
@@ -166,5 +173,23 @@ export const blendFragmentShaders: Record<GlueBlendMode, string> = {
       }
       B.b = Cb.b + (2.0 * Cs.b - 1.0) * (D.b - Cb.b);
     }`
+  ),
+  [GlueBlendMode.DARKEN]: blendBaseFragmentShader.replace(
+    '@source',
+    `if (luma(dest) > luma(src)) {
+      gl_FragColor = src;
+    } else {
+      gl_FragColor = dest;
+    }
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.LIGHTEN]: blendBaseFragmentShader.replace(
+    '@source',
+    `if (luma(dest) < luma(src)) {
+      gl_FragColor = src;
+    } else {
+      gl_FragColor = dest;
+    }
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
   ),
 };
