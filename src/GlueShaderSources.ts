@@ -12,6 +12,8 @@ export enum GlueBlendMode {
   LIGHTEN = 'lighten',
   COLOR_DODGE = 'color_dodge',
   COLOR_BURN = 'color_burn',
+  DIFFERENCE = 'difference',
+  EXCLUSION = 'exclusion',
 }
 
 export const defaultFragmentShader = `void main()
@@ -230,6 +232,18 @@ export const blendFragmentShaders: Record<GlueBlendMode, string> = {
     } else {
       gl_FragColor.b = 0.0;
     }
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.DIFFERENCE]: blendBaseFragmentShader.replace(
+    '@source',
+    `gl_FragColor.r = abs(dest.r - src.r);
+    gl_FragColor.g = abs(dest.g - src.g);
+    gl_FragColor.b = abs(dest.b - src.b);
+    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+  ),
+  [GlueBlendMode.EXCLUSION]: blendBaseFragmentShader.replace(
+    '@source',
+    `gl_FragColor.rgb = src.rgb + dest.rgb - 2.0 * src.rgb * dest.rgb;
     gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
   ),
 };
