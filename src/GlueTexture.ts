@@ -101,7 +101,7 @@ export class GlueTexture {
       size = [width, height];
     }
 
-    const blendProgram = this.glue.program('_blend_' + mode);
+    const blendProgram = this.glue.program('~blend_' + mode);
 
     if (!blendProgram) {
       throw new Error('Invalid blend mode.');

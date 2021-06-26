@@ -68,6 +68,8 @@ glue.deregisterProgram('filter');
 glue.deregisterTexture('image');
 ```
 
+**Texture and program names MUST NOT start with "~".**
+
 ## GLSL additions
 
 ### Uniforms

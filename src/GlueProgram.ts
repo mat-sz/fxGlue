@@ -162,13 +162,13 @@ export class GlueProgram {
       if (typeof mask === 'string') {
         this.uniforms.set('iMask', mask);
       } else {
-        this.glue.registerTexture('_temp_mask', mask);
-        this.uniforms.set('iMask', '_temp_mask');
+        this.glue.registerTexture('~temp_mask', mask);
+        this.uniforms.set('iMask', '~temp_mask');
       }
     }
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
-    this.glue.deregisterTexture('_temp_mask');
+    this.glue.deregisterTexture('~temp_mask');
   }
 
   /**

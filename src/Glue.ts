@@ -26,9 +26,9 @@ export class Glue {
    * @param gl WebGL context obtained by calling .getContext('webgl') or by using glueGetWebGLContext.
    */
   constructor(private gl: WebGLRenderingContext) {
-    this.registerProgram('_default');
+    this.registerProgram('~default');
     for (const mode of Object.values(GlueBlendMode) as GlueBlendMode[]) {
-      this.registerProgram('_blend_' + mode, blendFragmentShaders[mode]);
+      this.registerProgram('~blend_' + mode, blendFragmentShaders[mode]);
     }
 
     // Create two framebuffers to be swapped during rendering.
@@ -87,6 +87,7 @@ export class Glue {
 
   /**
    * Creates and registers a texture for later use.
+   * Texture names must not start with "~".
    * @param name Texture name (must not be registered already).
    * @param source HTMLImageElement or HTMLVideoElement with the texture. Must be loaded.
    * @returns A new GlueTexture instance.
@@ -149,6 +150,7 @@ export class Glue {
    * Creates and registers a WeBGL program for a later use.
    * NOTE: Glue uses a preprocessor for its GLSL programs.
    * Consult the documentation for more information.
+   * Program names must not start with "~".
    * @param name Program name (must not be registered already).
    * @param fragmentShader Glue-compatible GLSL fragment shader code.
    * @param vertexShader Glue-compatible GLSL vertex shader code.
@@ -240,7 +242,7 @@ export class Glue {
   render(): void {
     this.checkDisposed();
     this._final = true;
-    this.program('_default')?.apply();
+    this.program('~default')?.apply();
   }
 
   /**
