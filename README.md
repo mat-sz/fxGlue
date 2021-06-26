@@ -167,3 +167,15 @@ vec3 rgb2hsl(vec3 rgb)
 // Converts vec3(r, g, b) to vec3(h, s, v).
 vec3 rgb2hsv(vec3 rgb)
 ```
+
+### noise
+
+Contains noise functions from [webgl-noise](https://github.com/ashima/webgl-noise).
+
+```glsl
+// Cellular 2D noise
+vec2 cellular(vec2 P)
+
+// 2D noise
+float snoise(vec2 v)
+```
