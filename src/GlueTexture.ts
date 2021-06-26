@@ -39,6 +39,11 @@ export interface GlueTextureDrawOptions {
    * Blend mode.
    */
   mode?: GlueBlendMode;
+
+  /**
+   * Mask.
+   */
+  mask?: string | GlueSourceType;
 }
 
 export class GlueTexture {
@@ -93,6 +98,7 @@ export class GlueTexture {
     height,
     opacity = 1,
     mode = GlueBlendMode.NORMAL,
+    mask,
   }: GlueTextureDrawOptions = {}): void {
     this.use();
 
@@ -107,12 +113,15 @@ export class GlueTexture {
       throw new Error('Invalid blend mode.');
     }
 
-    blendProgram.apply({
-      iImage: 1,
-      iSize: size,
-      iOffset: [x / this._width, y / this._height],
-      iOpacity: opacity,
-    });
+    blendProgram.apply(
+      {
+        iImage: 1,
+        iSize: size,
+        iOffset: [x / this._width, y / this._height],
+        iOpacity: opacity,
+      },
+      mask
+    );
   }
 
   /**

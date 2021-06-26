@@ -20,8 +20,7 @@ export enum GlueBlendMode {
   LUMINOSITY = 'luminosity',
 }
 
-export const defaultFragmentShader = `void main()
-{
+export const defaultFragmentShader = `void main() {
   vec2 p = gl_FragCoord.xy / iResolution;
   gl_FragColor = texture2D(iTexture, p);
 }`;
@@ -32,14 +31,14 @@ export const defaultVertexShader = `void main() {
 
 const blendBaseFragmentShader = `@use wrap
 @use color
+@use mask
 
 uniform sampler2D iImage;
 uniform vec2 iSize;
 uniform vec2 iOffset;
 uniform float iOpacity;
 
-void main()
-{
+void main() {
   vec2 p = gl_FragCoord.xy / iResolution;
   vec2 uv = gl_FragCoord.xy / iResolution;
 
@@ -59,6 +58,8 @@ void main()
   }
   
   @source
+
+  gl_FragColor = mix(src, dest, mask(p, 1.0));
 }`;
 
 const blendMainFragmentShader = blendBaseFragmentShader.replace(
