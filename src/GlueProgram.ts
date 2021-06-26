@@ -1,6 +1,7 @@
 import { Glue } from './Glue';
 import { gluePreprocessShader } from './GluePreprocessor';
 import { GlueUniforms, GlueUniformValue } from './GlueUniforms';
+import { GlueSourceType } from './GlueUtils';
 
 const rectangleBuffer = new Float32Array([
   -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1,
@@ -129,8 +130,12 @@ export class GlueProgram {
   /**
    * Applies the program to the current framebuffer.
    * @param uniforms Uniform values (optional).
+   * @param mask Mask texture identifier or image.
    */
-  apply(uniforms?: Record<string, GlueUniformValue>): void {
+  apply(
+    uniforms?: Record<string, GlueUniformValue>,
+    mask?: string | GlueSourceType
+  ): void {
     this.checkDisposed();
 
     this.glue._switchFramebuffer();
@@ -151,7 +156,19 @@ export class GlueProgram {
       this.uniforms.setAll(uniforms);
     }
 
+    if (typeof mask !== 'undefined') {
+      this.uniforms.set('iMaskEnabled', 1);
+
+      if (typeof mask === 'string') {
+        this.uniforms.set('iMask', mask);
+      } else {
+        this.glue.registerTexture('_temp_mask', mask);
+        this.uniforms.set('iMask', '_temp_mask');
+      }
+    }
+
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+    this.glue.deregisterTexture('_temp_mask');
   }
 
   /**

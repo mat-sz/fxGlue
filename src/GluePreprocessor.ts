@@ -274,6 +274,24 @@ vec2 cellular(vec2 P) {
   return sqrt(d1.xy);
 }
 `,
+  mask: `float mask(vec2 p, float value) {
+  if (!iMaskEnabled) {
+    return value;
+  }
+
+  float r = texture2D(iMask, p).r;
+  return value * r;
+}
+
+float mask(float value) {
+  if (!iMaskEnabled) {
+    return value;
+  }
+
+  vec2 p = gl_FragCoord.xy / iResolution;
+  return mask(p, value);
+}
+`,
 };
 
 const shaderPrefix = 'precision mediump float;\nprecision mediump int;\n';
@@ -301,6 +319,8 @@ export function gluePreprocessShader(
 
   // Uniforms
   processedShader += 'uniform sampler2D iTexture;\n';
+  processedShader += 'uniform sampler2D iMask;\n';
+  processedShader += 'uniform bool iMaskEnabled;\n';
   processedShader += 'uniform vec2 iResolution;\n';
 
   const lines = source.split('\n');
