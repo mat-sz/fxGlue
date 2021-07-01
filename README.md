@@ -26,9 +26,10 @@ yarn install fxglue
 ## Example use
 
 ```ts
-// image is a HTMLImageElement with a LOADED image.
+// source is a HTMLImageElement, HTMLVideoElement or a HTMLCanvasElement.
+// The source must be loaded.
 
-import { GlueCanvas } from 'fxglue';
+import { GlueCanvasm, glueGetSourceDimensions } from 'fxglue';
 
 export const fragmentShader = `
 uniform float iRed;
@@ -45,18 +46,18 @@ const { glue, canvas } = glueCanvas;
 
 document.body.append(canvas);
 
-glueCanvas.setSize(image.naturalWidth, image.naturalHeight);
-glue.registerTexture('image', image);
+glueCanvas.setSize(...glueGetSourceDimensions(source));
+glue.registerTexture('source', source);
 glue.registerProgram('filter', fragmentShader);
 
 // In requestAnimationFrame.
-glue.texture('image')?.draw();
+glue.texture('source')?.draw();
 glue.program('filter')?.uniforms.set('iRed', 0.5);
 glue.program('filter')?.apply();
 glue.render();
 
 // Or, simpler...
-glue.texture('image')?.draw();
+glue.texture('source')?.draw();
 glue.program('filter')?.apply({ iRed: 0.5 });
 glue.render();
 
@@ -65,7 +66,7 @@ glue.dispose();
 
 // Or if you only want to remove one texture/program.
 glue.deregisterProgram('filter');
-glue.deregisterTexture('image');
+glue.deregisterTexture('source');
 ```
 
 **Texture and program names MUST NOT start with "~".**
