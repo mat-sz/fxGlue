@@ -1,4 +1,7 @@
-export type GlueSourceType = HTMLImageElement | HTMLVideoElement;
+export type GlueSourceType =
+  | HTMLImageElement
+  | HTMLVideoElement
+  | HTMLCanvasElement;
 
 /**
  * Check if WebGL is available in the current browser.
@@ -74,6 +77,8 @@ export function glueGetSourceDimensions(
     return [source.naturalWidth, source.naturalHeight];
   } else if (source instanceof HTMLVideoElement) {
     return [source.videoWidth, source.videoHeight];
+  } else if (source instanceof HTMLCanvasElement) {
+    return [source.width, source.height];
   }
 
   throw new Error('Unable to get source dimensions.');

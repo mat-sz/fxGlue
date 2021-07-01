@@ -57,7 +57,7 @@ export class GlueTexture {
    * This constructor should not be called from outside of the Glue class.
    * @param gl WebGL context.
    * @param glue Glue instance.
-   * @param _source HTMLImageElement or HTMLVideoElement containing the source. Must be loaded.
+   * @param _source HTMLImageElement, HTMLVideoElement or HTMLCanvasElement containing the source. Must be loaded.
    */
   constructor(
     private gl: WebGLRenderingContext,

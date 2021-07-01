@@ -89,7 +89,7 @@ export class Glue {
    * Creates and registers a texture for later use.
    * Texture names must not start with "~".
    * @param name Texture name (must not be registered already).
-   * @param source HTMLImageElement or HTMLVideoElement with the texture. Must be loaded.
+   * @param source HTMLImageElement, HTMLVideoElement or HTMLCanvasElement with the texture. Must be loaded.
    * @returns A new GlueTexture instance.
    */
   registerTexture(name: string, source: GlueSourceType): GlueTexture {
@@ -135,8 +135,8 @@ export class Glue {
   }
 
   /**
-   * Draws a HTMLImageElement or a HTMLVideoElement without registering a new texture.
-   * @param source HTMLImageElement or HTMLVideoElement with the texture. Must be loaded.
+   * Draws a HTMLImageElement, HTMLVideoElement or a HTMLCanvasElement without registering a new texture.
+   * @param source HTMLImageElement, HTMLVideoElement or HTMLCanvasElement with the texture. Must be loaded.
    * @param options Settings for how the texture should be painted: X/Y offset, width/height and more.
    */
   draw(source: GlueSourceType, options?: GlueTextureDrawOptions): void {
