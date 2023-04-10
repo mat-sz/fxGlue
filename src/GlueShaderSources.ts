@@ -59,7 +59,11 @@ void main() {
   
   @source
 
-  gl_FragColor = mix(src, dest, mask(p, 1.0));
+  dest.rgb *= dest.a;
+  gl_FragColor *= 1.0 - dest.a;
+  gl_FragColor += dest;
+
+  gl_FragColor = mix(src, gl_FragColor, mask(p, 1.0));
 }`;
 
 const blendMainFragmentShader = blendBaseFragmentShader.replace(
@@ -68,64 +72,27 @@ const blendMainFragmentShader = blendBaseFragmentShader.replace(
 gl_FragColor = vec4(0, 0, 0, 0);
 return;
 }
-vec3 Cb = src.rgb / src.a, Cs;
-if (dest.a > 0.0) {
-Cs = dest.rgb / dest.a;
-}
+vec3 Cb = src.rgb * src.a, Cs;
+Cs = dest.rgb * dest.a;
 
 @source
 
-gl_FragColor.a = src.a + dest.a * (1.0-src.a);
-gl_FragColor.rgb = (1.0 - src.a) * Cs + src.a * B;
-gl_FragColor.rgb *= gl_FragColor.a;`
+dest.rgb = (1.0 - src.a) * Cs + src.a * B;`
 );
 
 // Source: https://github.com/pixijs/pixi-picture/blob/master/src/ShaderParts.ts
 
 export const blendFragmentShaders: Record<GlueBlendMode, string> = {
-  [GlueBlendMode.NORMAL]: blendBaseFragmentShader.replace(
-    '@source',
-    `dest *= dest.a;
-    gl_FragColor *= 1.0 - dest.a;
-    gl_FragColor += dest;`
-  ),
+  [GlueBlendMode.NORMAL]: blendBaseFragmentShader.replace('@source', ``),
   [GlueBlendMode.MULTIPLY]: blendBaseFragmentShader.replace(
     '@source',
-    `if (dest.a > 0.0) {
-      gl_FragColor.rgb = (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
-      gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);
-    }`
+    `dest.rgb = (dest.rgb) * ((1.0 - dest.a) + src.rgb);`
   ),
   [GlueBlendMode.SCREEN]: blendBaseFragmentShader.replace(
     '@source',
-    `if (dest.a > 0.0) {
-      gl_FragColor.rgb = (dest.rgb / dest.a) + ((1.0 - src.a) + src.rgb) - (dest.rgb / dest.a) * ((1.0 - src.a) + src.rgb);
-      gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);
-    }`
+    `dest.rgb = (dest.rgb) + ((1.0 - src.a) + src.rgb) - (dest.rgb) * ((1.0 - src.a) + src.rgb);`
   ),
   [GlueBlendMode.OVERLAY]: blendMainFragmentShader.replace(
-    '@source',
-    `vec3 multiply = Cb * Cs * 2.0;
-    vec3 Cb2 = Cb * 2.0 - 1.0;
-    vec3 screen = Cb2 + Cs - Cb2 * Cs;
-    vec3 B;
-    if (Cs.r <= 0.5) {
-      B.r = multiply.r;
-    } else {
-      B.r = screen.r;
-    }
-    if (Cs.g <= 0.5) {
-      B.g = multiply.g;
-    } else {
-      B.g = screen.g;
-    }
-    if (Cs.b <= 0.5) {
-      B.b = multiply.b;
-    } else {
-      B.b = screen.b;
-    }`
-  ),
-  [GlueBlendMode.HARD_LIGHT]: blendMainFragmentShader.replace(
     '@source',
     `vec3 multiply = Cb * Cs * 2.0;
     vec3 Cs2 = Cs * 2.0 - 1.0;
@@ -142,6 +109,28 @@ export const blendFragmentShaders: Record<GlueBlendMode, string> = {
       B.g = screen.g;
     }
     if (Cb.b <= 0.5) {
+      B.b = multiply.b;
+    } else {
+      B.b = screen.b;
+    }`
+  ),
+  [GlueBlendMode.HARD_LIGHT]: blendMainFragmentShader.replace(
+    '@source',
+    `vec3 multiply = Cb * Cs * 2.0;
+    vec3 Cb2 = Cb * 2.0 - 1.0;
+    vec3 screen = Cb2 + Cs - Cb2 * Cs;
+    vec3 B;
+    if (Cs.r <= 0.5) {
+      B.r = multiply.r;
+    } else {
+      B.r = screen.r;
+    }
+    if (Cs.g <= 0.5) {
+      B.g = multiply.g;
+    } else {
+      B.g = screen.g;
+    }
+    if (Cs.b <= 0.5) {
       B.b = multiply.b;
     } else {
       B.b = screen.b;
@@ -186,101 +175,87 @@ export const blendFragmentShaders: Record<GlueBlendMode, string> = {
   [GlueBlendMode.DARKEN]: blendBaseFragmentShader.replace(
     '@source',
     `if (luma(dest) > luma(src)) {
-      gl_FragColor = src;
-    } else {
-      gl_FragColor = dest;
-    }
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+      dest.rgb = src.rgb;
+    }`
   ),
   [GlueBlendMode.LIGHTEN]: blendBaseFragmentShader.replace(
     '@source',
     `if (luma(dest) < luma(src)) {
-      gl_FragColor = src;
-    } else {
-      gl_FragColor = dest;
-    }
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+      dest.rgb = src.rgb;
+    }`
   ),
   [GlueBlendMode.COLOR_DODGE]: blendBaseFragmentShader.replace(
     '@source',
     `if (src.r < 1.0) {
-      gl_FragColor.r = min(1.0, src.r/(1.0 - dest.r));
+      dest.r = min(1.0, src.r/(1.0 - dest.r));
     } else {
-      gl_FragColor.r = 1.0;
+      dest.r = 1.0;
     }
     if (src.g < 1.0) {
-      gl_FragColor.g = min(1.0, src.g/(1.0 - dest.g));
+      dest.g = min(1.0, src.g/(1.0 - dest.g));
     } else {
-      gl_FragColor.g = 1.0;
+      dest.g = 1.0;
     }
     if (src.b < 1.0) {
-      gl_FragColor.b = min(1.0, src.b/(1.0 - dest.b));
+      dest.b = min(1.0, src.b/(1.0 - dest.b));
     } else {
-      gl_FragColor.b = 1.0;
-    }
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+      dest.b = 1.0;
+    }`
   ),
   [GlueBlendMode.COLOR_BURN]: blendBaseFragmentShader.replace(
     '@source',
     `if (dest.r > 0.0) {
-      gl_FragColor.r = 1.0 - min(1.0, (1.0 - src.r)/dest.r);
+      dest.r = 1.0 - min(1.0, (1.0 - src.r)/dest.r);
     } else {
-      gl_FragColor.r = 0.0;
+      dest.r = 0.0;
     }
     if (dest.g > 0.0) {
-      gl_FragColor.g = 1.0 - min(1.0, (1.0 - src.g)/dest.g);
+      dest.g = 1.0 - min(1.0, (1.0 - src.g)/dest.g);
     } else {
-      gl_FragColor.g = 0.0;
+      dest.g = 0.0;
     }
     if (dest.b > 0.0) {
-      gl_FragColor.b = 1.0 - min(1.0, (1.0 - src.b)/dest.b);
+      dest.b = 1.0 - min(1.0, (1.0 - src.b)/dest.b);
     } else {
-      gl_FragColor.b = 0.0;
-    }
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+      dest.b = 0.0;
+    }`
   ),
   [GlueBlendMode.DIFFERENCE]: blendBaseFragmentShader.replace(
     '@source',
-    `gl_FragColor.r = abs(dest.r - src.r);
-    gl_FragColor.g = abs(dest.g - src.g);
-    gl_FragColor.b = abs(dest.b - src.b);
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+    `dest.r = abs(dest.r - src.r);
+    dest.g = abs(dest.g - src.g);
+    dest.b = abs(dest.b - src.b);`
   ),
   [GlueBlendMode.EXCLUSION]: blendBaseFragmentShader.replace(
     '@source',
-    `gl_FragColor.rgb = src.rgb + dest.rgb - 2.0 * src.rgb * dest.rgb;
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+    `dest.rgb = src.rgb + dest.rgb - 2.0 * src.rgb * dest.rgb;`
   ),
   [GlueBlendMode.HUE]: blendBaseFragmentShader.replace(
     '@source',
     `vec3 hsl_src = rgb2hsl(src.rgb);
     vec3 hsl_dest = rgb2hsl(dest.rgb);
     hsl_src.x = hsl_dest.x;
-    gl_FragColor.rgb = hsl2rgb(hsl_src);
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+    dest.rgb = hsl2rgb(hsl_src);`
   ),
   [GlueBlendMode.SATURATION]: blendBaseFragmentShader.replace(
     '@source',
     `vec3 hsl_src = rgb2hsl(src.rgb);
     vec3 hsl_dest = rgb2hsl(dest.rgb);
     hsl_src.y = hsl_dest.y;
-    gl_FragColor.rgb = hsl2rgb(hsl_src);
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+    dest.rgb = hsl2rgb(hsl_src);`
   ),
   [GlueBlendMode.COLOR]: blendBaseFragmentShader.replace(
     '@source',
     `vec3 hsl_src = rgb2hsl(src.rgb);
     vec3 hsl_dest = rgb2hsl(dest.rgb);
     hsl_src.xy = hsl_dest.xy;
-    gl_FragColor.rgb = hsl2rgb(hsl_src);
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+    dest.rgb = hsl2rgb(hsl_src);`
   ),
   [GlueBlendMode.LUMINOSITY]: blendBaseFragmentShader.replace(
     '@source',
     `vec3 hsl_src = rgb2hsl(src.rgb);
     vec3 hsl_dest = rgb2hsl(dest.rgb);
     hsl_src.z = hsl_dest.z;
-    gl_FragColor.rgb = hsl2rgb(hsl_src);
-    gl_FragColor.a = min(src.a + dest.a - src.a * dest.a, 1.0);`
+    dest.rgb = hsl2rgb(hsl_src);`
   ),
 };
