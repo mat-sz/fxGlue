@@ -3,7 +3,7 @@ import { GlueProgram } from './GlueProgram';
 import {
   defaultFragmentShader,
   defaultVertexShader,
-  blendFragmentShaders,
+  blendFragmentShader,
   GlueBlendMode,
 } from './GlueShaderSources';
 import { GlueTexture, GlueTextureDrawOptions } from './GlueTexture';
@@ -26,9 +26,7 @@ export class Glue {
    */
   constructor(private gl: WebGLRenderingContext) {
     this.registerProgram('~default');
-    for (const mode of Object.values(GlueBlendMode) as GlueBlendMode[]) {
-      this.registerProgram('~blend_' + mode, blendFragmentShaders[mode]);
-    }
+    this.registerProgram('~blend', blendFragmentShader);
 
     this._groups.push(new GlueGroup(gl, this));
   }
@@ -311,18 +309,14 @@ export class Glue {
       size = [width, height];
     }
 
-    const blendProgram = this.program('~blend_' + mode);
-
-    if (!blendProgram) {
-      throw new Error('Invalid blend mode.');
-    }
-
-    blendProgram.apply(
+    const blendProgram = this.program('~blend');
+    blendProgram?.apply(
       {
         iImage: 1,
         iSize: size,
         iOffset: [x / this._width, y / this._height],
         iOpacity: opacity,
+        iBlendMode: mode,
       },
       mask
     );

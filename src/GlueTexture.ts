@@ -107,18 +107,14 @@ export class GlueTexture {
       size = [width, height];
     }
 
-    const blendProgram = this.glue.program('~blend_' + mode);
-
-    if (!blendProgram) {
-      throw new Error('Invalid blend mode.');
-    }
-
-    blendProgram.apply(
+    const blendProgram = this.glue.program('~blend');
+    blendProgram?.apply(
       {
         iImage: 1,
         iSize: size,
         iOffset: [x / this._width, y / this._height],
         iOpacity: opacity,
+        iBlendMode: mode,
       },
       mask
     );
