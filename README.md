@@ -5,7 +5,7 @@ WebGL-based 2D image processing/effects library.
 </p>
 
 <p align="center">
-<img alt="workflow" src="https://img.shields.io/github/workflow/status/mat-sz/fxglue/Node.js%20CI%20(yarn)">
+<img alt="workflow" src="https://img.shields.io/github/actions/workflow/status/mat-sz/fxglue/node.js.yml?branch=main">
 <a href="https://npmjs.com/package/fxglue">
 <img alt="npm" src="https://img.shields.io/npm/v/fxglue">
 <img alt="npm" src="https://img.shields.io/npm/dw/fxglue">
@@ -59,6 +59,14 @@ glue.render();
 // Or, simpler...
 glue.texture('source')?.draw();
 glue.program('filter')?.apply({ iRed: 0.5 });
+glue.render();
+
+// If you'd like to only apply filters to one texture.
+glue.texture('source')?.draw();
+glue.begin(); // Opens a new drawing group.
+glue.texture('source')?.draw();
+glue.program('filter')?.apply({ iRed: 0.5 });
+glue.end();
 glue.render();
 
 // When no longer necessary.
