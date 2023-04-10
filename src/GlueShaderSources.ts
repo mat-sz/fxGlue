@@ -57,7 +57,15 @@ uniform sampler2D iImage;
 uniform vec2 iSize;
 uniform vec2 iOffset;
 uniform float iOpacity;
+uniform float iAngle;
 uniform int iBlendMode;
+
+vec2 rotateUV(vec2 uv, float rotation, float mid) {
+  return vec2(
+    cos(rotation) * (uv.x - mid) + sin(rotation) * (uv.y - mid) + mid,
+    cos(rotation) * (uv.y - mid) - sin(rotation) * (uv.x - mid) + mid
+  );
+}
 
 float overlay(float base, float blend) {
 	return base<0.5?(2.0*base*blend):(1.0-2.0*(1.0-base)*(1.0-blend));
@@ -143,6 +151,7 @@ void main() {
   vec2 p = gl_FragCoord.xy / iResolution;
   vec2 uv = gl_FragCoord.xy / iResolution;
 
+  uv = rotateUV(uv, iAngle, 0.5);
   uv.x -= iOffset.x;
   uv.y += iOffset.y - 1.0 + iSize.y / iResolution.y;
   uv *= iResolution / iSize;

@@ -36,6 +36,11 @@ export interface GlueTextureDrawOptions {
   opacity?: number;
 
   /**
+   * Angle, from 0.0 to 2*PI.
+   */
+  angle?: number;
+
+  /**
    * Blend mode.
    */
   mode?: GlueBlendMode;
@@ -99,8 +104,10 @@ export class GlueTexture {
     opacity = 1,
     mode = GlueBlendMode.NORMAL,
     mask,
+    angle = 0,
   }: GlueTextureDrawOptions = {}): void {
     this.use();
+    console.log(angle);
 
     let size = [this._width, this._height];
     if (width && height) {
@@ -115,6 +122,7 @@ export class GlueTexture {
         iOffset: [x / this._width, y / this._height],
         iOpacity: opacity,
         iBlendMode: mode,
+        iAngle: Math.PI * 2 - angle,
       },
       mask
     );

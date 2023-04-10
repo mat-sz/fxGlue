@@ -300,6 +300,7 @@ export class Glue {
     opacity = 1,
     mode = GlueBlendMode.NORMAL,
     mask,
+    angle = 0,
   }: GlueTextureDrawOptions = {}): void {
     this.currentGroup.use();
     this._currentGroupIndex--;
@@ -317,6 +318,7 @@ export class Glue {
         iOffset: [x / this._width, y / this._height],
         iOpacity: opacity,
         iBlendMode: mode,
+        iAngle: Math.PI * 2 - angle,
       },
       mask
     );
