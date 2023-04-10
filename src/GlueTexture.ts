@@ -145,9 +145,7 @@ export class GlueTexture {
 
     const gl = this.gl;
     gl.activeTexture(gl.TEXTURE1);
-
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
-
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.texImage2D(
       gl.TEXTURE_2D,
@@ -168,7 +166,6 @@ export class GlueTexture {
 
     const gl = this.gl;
     gl.activeTexture(target || gl.TEXTURE1);
-
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
   }
 
@@ -179,6 +176,7 @@ export class GlueTexture {
    */
   dispose(): void {
     this.gl.deleteTexture(this._texture);
+    this._disposed = true;
   }
 
   private checkDisposed() {

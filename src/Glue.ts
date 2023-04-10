@@ -1,3 +1,4 @@
+import { GlueGroup } from './GlueGroup';
 import { GlueProgram } from './GlueProgram';
 import {
   defaultFragmentShader,
@@ -15,11 +16,9 @@ export class Glue {
   private _imports: Record<string, string> = {};
   private _width = 0;
   private _height = 0;
-  private _renderTextures: WebGLTexture[] = [];
-  private _renderFramebuffers: WebGLFramebuffer[] = [];
-  private _currentFramebuffer = 0;
-  private _final = false;
   private _disposed = false;
+  private _groups: GlueGroup[] = [];
+  private _currentGroupIndex = 0;
 
   /**
    * Create a new Glue instance around a given WebGL context.
@@ -31,9 +30,7 @@ export class Glue {
       this.registerProgram('~blend_' + mode, blendFragmentShaders[mode]);
     }
 
-    // Create two framebuffers to be swapped during rendering.
-    this.addFramebuffer();
-    this.addFramebuffer();
+    this._groups.push(new GlueGroup(gl, this));
   }
 
   /**
@@ -44,28 +41,9 @@ export class Glue {
   setSize(width: number, height: number): void {
     this.checkDisposed();
 
-    const gl = this.gl;
-    gl.activeTexture(gl.TEXTURE0);
-
-    for (const texture of this._renderTextures) {
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        width,
-        height,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        null
-      );
+    for (const group of this._groups) {
+      group.setSize(width, height);
     }
-
-    gl.bindTexture(
-      gl.TEXTURE_2D,
-      this._renderTextures[this._currentFramebuffer]
-    );
 
     this._width = width;
     this._height = height;
@@ -241,7 +219,12 @@ export class Glue {
    */
   render(): void {
     this.checkDisposed();
-    this._final = true;
+
+    while (this._currentGroupIndex > 0) {
+      this.end();
+    }
+
+    this.currentGroup._markAsFinal();
     this.program('~default')?.apply();
   }
 
@@ -255,12 +238,8 @@ export class Glue {
       return;
     }
 
-    for (const texture of this._renderTextures) {
-      this.gl.deleteTexture(texture);
-    }
-
-    for (const framebuffer of this._renderFramebuffers) {
-      this.gl.deleteFramebuffer(framebuffer);
+    for (const group of this._groups) {
+      group.dispose();
     }
 
     for (const program of Object.values(this._programs)) {
@@ -271,9 +250,9 @@ export class Glue {
       texture.dispose();
     }
 
-    this._renderFramebuffers = [];
-    this._renderTextures = [];
+    this._groups = [];
     this._programs = {};
+    this._textures = {};
     this._disposed = true;
   }
 
@@ -285,7 +264,6 @@ export class Glue {
    */
   registerImport(name: string, source: string): void {
     this.checkDisposed();
-
     this._imports[name] = source;
   }
 
@@ -295,8 +273,59 @@ export class Glue {
    */
   deregisterImport(name: string): void {
     this.checkDisposed();
-
     delete this._imports[name];
+  }
+
+  /**
+   * Creates a new drawing group and switches to it.
+   */
+  begin(): void {
+    const newIndex = this._currentGroupIndex + 1;
+
+    if (!this._groups[newIndex]) {
+      this._groups[newIndex] = new GlueGroup(this.gl, this);
+      this._groups[newIndex].setSize(this._width, this._height);
+    }
+
+    this._currentGroupIndex = newIndex;
+  }
+
+  /**
+   * Draws the current drawing group onto the higher group's framebuffer.
+   * @param options Drawing options.
+   */
+  end({
+    x = 0,
+    y = 0,
+    width,
+    height,
+    opacity = 1,
+    mode = GlueBlendMode.NORMAL,
+    mask,
+  }: GlueTextureDrawOptions = {}): void {
+    this.currentGroup.use();
+    this._currentGroupIndex--;
+
+    let size = [this._width, this._height];
+    if (width && height) {
+      size = [width, height];
+    }
+
+    const blendProgram = this.program('~blend_' + mode);
+
+    if (!blendProgram) {
+      throw new Error('Invalid blend mode.');
+    }
+
+    blendProgram.apply(
+      {
+        iImage: 1,
+        iSize: size,
+        iOffset: [x / this._width, y / this._height],
+        iOpacity: opacity,
+      },
+      mask
+    );
   }
 
   /**
@@ -306,21 +335,7 @@ export class Glue {
    */
   _switchFramebuffer(): void {
     this.checkDisposed();
-
-    const gl = this.gl;
-    gl.activeTexture(gl.TEXTURE0);
-
-    gl.bindTexture(
-      gl.TEXTURE_2D,
-      this._renderTextures[this._currentFramebuffer]
-    );
-    this._currentFramebuffer = this._currentFramebuffer === 0 ? 1 : 0;
-
-    gl.bindFramebuffer(
-      gl.FRAMEBUFFER,
-      this._final ? null : this._renderFramebuffers[this._currentFramebuffer]
-    );
-    this._final = false;
+    this.currentGroup._switchFramebuffer();
   }
 
   /**
@@ -358,47 +373,7 @@ export class Glue {
     }
   }
 
-  private addFramebuffer(): void {
-    const [texture, framebuffer] = this.createFramebuffer(1, 1);
-    this._renderTextures.push(texture);
-    this._renderFramebuffers.push(framebuffer);
-  }
-
-  private createFramebuffer(
-    width: number,
-    height: number
-  ): readonly [WebGLTexture, WebGLFramebuffer] {
-    const gl = this.gl;
-    const texture = this._createTexture();
-
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.RGBA,
-      width,
-      height,
-      0,
-      gl.RGBA,
-      gl.UNSIGNED_BYTE,
-      null
-    );
-
-    const framebuffer = gl.createFramebuffer();
-
-    if (!framebuffer) {
-      throw new Error('Unable to create a framebuffer.');
-    }
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-
-    gl.framebufferTexture2D(
-      gl.FRAMEBUFFER,
-      gl.COLOR_ATTACHMENT0,
-      gl.TEXTURE_2D,
-      texture,
-      0
-    );
-
-    return [texture, framebuffer] as const;
+  private get currentGroup(): GlueGroup {
+    return this._groups[this._currentGroupIndex];
   }
 }
