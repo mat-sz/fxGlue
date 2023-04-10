@@ -1,12 +1,12 @@
+import { GlueTextureDrawOptions } from './GlueDrawable';
 import { GlueGroup } from './GlueGroup';
 import { GlueProgram } from './GlueProgram';
 import {
   defaultFragmentShader,
   defaultVertexShader,
   blendFragmentShader,
-  GlueBlendMode,
 } from './GlueShaderSources';
-import { GlueTexture, GlueTextureDrawOptions } from './GlueTexture';
+import { GlueTexture } from './GlueTexture';
 import { GlueUniformValue } from './GlueUniforms';
 import { GlueSourceType } from './GlueUtils';
 
@@ -292,36 +292,11 @@ export class Glue {
    * Draws the current drawing group onto the higher group's framebuffer.
    * @param options Drawing options.
    */
-  end({
-    x = 0,
-    y = 0,
-    width,
-    height,
-    opacity = 1,
-    mode = GlueBlendMode.NORMAL,
-    mask,
-    angle = 0,
-  }: GlueTextureDrawOptions = {}): void {
-    this.currentGroup.use();
+  end(options: GlueTextureDrawOptions = {}): void {
+    const group = this.currentGroup;
+    group.use();
     this._currentGroupIndex--;
-
-    let size = [this._width, this._height];
-    if (width && height) {
-      size = [width, height];
-    }
-
-    const blendProgram = this.program('~blend');
-    blendProgram?.apply(
-      {
-        iImage: 1,
-        iSize: size,
-        iOffset: [x / this._width, y / this._height],
-        iOpacity: opacity,
-        iBlendMode: mode,
-        iAngle: Math.PI * 2 - angle,
-      },
-      mask
-    );
+    group.draw(options);
   }
 
   /**

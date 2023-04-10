@@ -1,60 +1,14 @@
 import { Glue } from './Glue';
-import { GlueBlendMode } from './GlueShaderSources';
+import { GlueDrawable } from './GlueDrawable';
 import {
   glueIsSourceLoaded,
   glueGetSourceDimensions,
   GlueSourceType,
 } from './GlueUtils';
 
-/**
- * Draw options for textures.
- */
-export interface GlueTextureDrawOptions {
-  /**
-   * Horizontal offset in pixels.
-   */
-  x?: number;
-
-  /**
-   * Vertical offset in pixels.
-   */
-  y?: number;
-
-  /**
-   * Width in pixels.
-   */
-  width?: number;
-
-  /**
-   * Height in pixels.
-   */
-  height?: number;
-
-  /**
-   * Opacity from 0.0 to 1.0.
-   */
-  opacity?: number;
-
-  /**
-   * Angle, from 0.0 to 2*PI.
-   */
-  angle?: number;
-
-  /**
-   * Blend mode.
-   */
-  mode?: GlueBlendMode;
-
-  /**
-   * Mask.
-   */
-  mask?: string | GlueSourceType;
-}
-
-export class GlueTexture {
+export class GlueTexture extends GlueDrawable {
   private _width: number;
   private _height: number;
-  private _disposed = false;
   private _texture: WebGLTexture;
 
   /**
@@ -65,10 +19,12 @@ export class GlueTexture {
    * @param _source HTMLImageElement, HTMLVideoElement or HTMLCanvasElement containing the source. Must be loaded.
    */
   constructor(
-    private gl: WebGLRenderingContext,
-    private glue: Glue,
+    gl: WebGLRenderingContext,
+    glue: Glue,
     private _source: GlueSourceType
   ) {
+    super(gl, glue);
+
     if (!glueIsSourceLoaded(_source)) {
       throw new Error('Source is not loaded.');
     }
@@ -92,40 +48,16 @@ export class GlueTexture {
     this._height = height;
   }
 
-  /**
-   * Draws the texture onto the current framebuffer.
-   * @param options Drawing options.
-   */
-  draw({
-    x = 0,
-    y = 0,
-    width,
-    height,
-    opacity = 1,
-    mode = GlueBlendMode.NORMAL,
-    mask,
-    angle = 0,
-  }: GlueTextureDrawOptions = {}): void {
-    this.use();
-    console.log(angle);
+  get width(): number {
+    return this._width;
+  }
 
-    let size = [this._width, this._height];
-    if (width && height) {
-      size = [width, height];
-    }
+  get height(): number {
+    return this._height;
+  }
 
-    const blendProgram = this.glue.program('~blend');
-    blendProgram?.apply(
-      {
-        iImage: 1,
-        iSize: size,
-        iOffset: [x / this._width, y / this._height],
-        iOpacity: opacity,
-        iBlendMode: mode,
-        iAngle: Math.PI * 2 - angle,
-      },
-      mask
-    );
+  get texture(): WebGLTexture {
+    return this._texture;
   }
 
   /**
@@ -162,18 +94,6 @@ export class GlueTexture {
   }
 
   /**
-   * Selects and binds the current texture to TEXTURE1 or target.
-   * @param target gl.TEXTURE1 to gl.TEXTURE32 (default: gl.TEXTURE1).
-   */
-  use(target?: number): void {
-    this.checkDisposed();
-
-    const gl = this.gl;
-    gl.activeTexture(target || gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this._texture);
-  }
-
-  /**
    * Disposes of this GlueTexture object.
    * After this operation, the GlueTexture object may not be utilized further.
    * A new GlueTexture instance must be created for further use.
@@ -181,11 +101,5 @@ export class GlueTexture {
   dispose(): void {
     this.gl.deleteTexture(this._texture);
     this._disposed = true;
-  }
-
-  private checkDisposed() {
-    if (this._disposed) {
-      throw new Error('This GlueTexture object has been disposed.');
-    }
   }
 }

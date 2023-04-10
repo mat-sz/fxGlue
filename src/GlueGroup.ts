@@ -1,17 +1,19 @@
 import { Glue } from './Glue';
+import { GlueDrawable } from './GlueDrawable';
 
-export class GlueGroup {
+export class GlueGroup extends GlueDrawable {
   private _renderTextures: WebGLTexture[] = [];
   private _renderFramebuffers: WebGLFramebuffer[] = [];
   private _currentFramebuffer = 0;
   private _final = false;
-  private _disposed = false;
 
   /**
    * Create a new GlueGroup instance around a given WebGL context.
    * @param gl WebGL context obtained by calling .getContext('webgl') or by using glueGetWebGLContext.
    */
-  constructor(private gl: WebGLRenderingContext, private glue: Glue) {
+  constructor(gl: WebGLRenderingContext, glue: Glue) {
+    super(gl, glue);
+
     // Create two framebuffers to be swapped during rendering.
     this.addFramebuffer();
     this.addFramebuffer();
@@ -43,10 +45,19 @@ export class GlueGroup {
       );
     }
 
-    gl.bindTexture(
-      gl.TEXTURE_2D,
-      this._renderTextures[this._currentFramebuffer]
-    );
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+  }
+
+  get width(): number {
+    return this.glue.width;
+  }
+
+  get height(): number {
+    return this.glue.height;
+  }
+
+  get texture(): WebGLTexture {
+    return this._renderTextures[this._currentFramebuffer];
   }
 
   /**
@@ -92,10 +103,7 @@ export class GlueGroup {
     const gl = this.gl;
     gl.activeTexture(gl.TEXTURE0);
 
-    gl.bindTexture(
-      gl.TEXTURE_2D,
-      this._renderTextures[this._currentFramebuffer]
-    );
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
     this._currentFramebuffer = this._currentFramebuffer === 0 ? 1 : 0;
 
     gl.bindFramebuffer(
@@ -103,27 +111,6 @@ export class GlueGroup {
       this._final ? null : this._renderFramebuffers[this._currentFramebuffer]
     );
     this._final = false;
-  }
-
-  /**
-   * Selects and binds the current group to TEXTURE1 or target.
-   * @param target gl.TEXTURE1 to gl.TEXTURE32 (default: gl.TEXTURE1).
-   */
-  use(target?: number): void {
-    this.checkDisposed();
-
-    const gl = this.gl;
-    gl.activeTexture(target || gl.TEXTURE1);
-    gl.bindTexture(
-      gl.TEXTURE_2D,
-      this._renderTextures[this._currentFramebuffer]
-    );
-  }
-
-  private checkDisposed(): void {
-    if (this._disposed) {
-      throw new Error('This GlueGroup object has been disposed.');
-    }
   }
 
   private addFramebuffer(): void {
