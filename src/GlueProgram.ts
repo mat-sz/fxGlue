@@ -122,7 +122,7 @@ export class GlueProgram {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, rectangleBuffer, gl.STATIC_DRAW);
 
-    const positionLocation = gl.getAttribLocation(this._program, 'position');
+    const positionLocation = gl.getAttribLocation(this._program, 'pos');
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
   }

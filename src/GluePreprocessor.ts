@@ -293,8 +293,65 @@ float mask(float value) {
 }
 `,
 };
+const vertexShaderHeader = `
+layout(location = 0) in vec2 pos;
+#define position pos
+`
+  // #define shadertoy_out_color gl_FragColor
+   const fragmentShaderCommonHeader = `
+out vec4 shadertoy_out_color;
 
-const shaderPrefix = 'precision mediump float;\nprecision mediump int;\n';
+void mainImage( out vec4 c, in vec2 f );
+void st_assert( bool cond );
+void st_assert( bool cond, int v );
+
+void st_assert( bool cond, int v ) {
+    if(!cond) {
+        if(v==0) shadertoy_out_color.x = -1.0;
+        else if(v==1) shadertoy_out_color.y = -1.0;
+        else if(v==2) shadertoy_out_color.z = -1.0;
+        else shadertoy_out_color.w = -1.0;
+    }
+}
+void st_assert( bool cond ) {
+    if(!cond) shadertoy_out_color.x = -1.0;
+}
+
+void /**/ main() {
+    shadertoy_out_color = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 color = vec4(1e20);
+    mainImage(color, gl_FragCoord.xy);
+    if(shadertoy_out_color.x < 0.0) color = vec4(1.0, 0.0, 0.0, 1.0);
+    if(shadertoy_out_color.y < 0.0) color = vec4(0.0, 1.0, 0.0, 1.0);
+    if(shadertoy_out_color.z < 0.0) color = vec4(0.0, 0.0, 1.0, 1.0);
+    if(shadertoy_out_color.w < 0.0) color = vec4(1.0, 1.0, 0.0, 1.0);
+    shadertoy_out_color = vec4(color.xyz, 1.0);
+}
+
+#define texture2D texture
+#define gl_FragColor fragColor
+
+`;
+  // #define main mainImage(out vec4 gl_FragColor, in vec2 gl_FragCoord)
+   
+
+const getShaderHeader = (append:string): string => `#version 300 es
+#ifdef GL_ES
+precision highp float;
+precision highp int;
+precision mediump sampler3D;
+#endif
+
+${append}
+
+`.trimLeft();
+
+// const updateLegacyFilterMain = (source) => {
+//
+//
+// }
+   
+// const shaderPrefix = 'precision mediump float;\nprecision mediump int;\n';
 
 export interface GluePreprocessorResult {
   lineMap: Record<number, number>;
@@ -312,9 +369,9 @@ export function gluePreprocessShader(
   vertex = false,
   customImports: Record<string, string> = {}
 ): GluePreprocessorResult {
-  let processedShader = shaderPrefix;
+  let processedShader = getShaderHeader(fragmentShaderCommonHeader);
   if (vertex) {
-    processedShader += 'attribute vec3 position;\n';
+    processedShader = getShaderHeader(vertexShaderHeader);
   }
 
   // Uniforms
@@ -330,6 +387,8 @@ export function gluePreprocessShader(
   let currentOutputLine = processedShader.split('\n').length;
   const included: string[] = [];
 
+  const mainRegEex = /void\s*main\s*\(\)\s*\{/;
+
   for (const line of lines) {
     let trimmed = line.trim();
     if (trimmed.startsWith('@use ')) {
@@ -344,10 +403,18 @@ export function gluePreprocessShader(
       }
 
       currentInputLine++;
+
+
       continue;
     }
 
-    processedShader += line + '\n';
+    processedShader += (vertex ? line : line.replace(mainRegEex, `
+void mainImage(out vec4 fragColor, in vec2 fragCoord){
+
+  #define gl_FragCoord fragCoord 
+
+`)) + '\n';
+
     lineMap[currentOutputLine] = currentInputLine;
     currentInputLine++;
     currentOutputLine++;

@@ -37,14 +37,25 @@ export enum GlueBlendMode {
   DARKER_COLOR,
 }
 
-export const defaultFragmentShader = `void main() {
-  vec2 p = gl_FragCoord.xy / iResolution;
-  gl_FragColor = texture2D(iTexture, p);
-}`;
-
-export const defaultVertexShader = `void main() {
-  gl_Position = vec4(position, 1.0);
-}`;
+// export const defaultFragmentShader = `void main() {
+//   vec2 p = gl_FragCoord.xy / iResolution;
+//   gl_FragColor = texture2D(iTexture, p);
+// }`;
+// vsSourceD = "layout(location = 0) in vec2 pos; void main() { gl_Position = vec4(pos.xy,0.0,1.0); }";
+//         fsSourceD = "uniform vec4 v; uniform sampler2D t; out vec4 outColor; void main() { vec2 uv = gl_FragCoord.xy / v.zw; outColor = texture(t, vec2(uv.x,1.0-uv.y)); }";
+export const defaultFragmentShader = `
+void mainImage( out vec4 fragColor, in vec2 fragCoord ){
+//  fragColor = vec4(0.0,0.0,1.0,1.0);
+  vec2 uv = fragCoord.xy / iResolution;
+  fragColor = texture(iTexture, uv);
+}
+`
+export const defaultVertexShader = `
+  void main() { gl_Position = vec4(pos.xy,0.0,1.0); }
+`
+// export const defaultVertexShader = `void main() {
+//   gl_Position = vec4(position, 1.0);
+// }`;
 
 // Source: https://github.com/jamieowen/glsl-blend
 

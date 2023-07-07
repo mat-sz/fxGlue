@@ -12,7 +12,7 @@ export function glueIsWebGLAvailable(): boolean {
     const canvas = document.createElement('canvas');
     return !!(
       window.WebGLRenderingContext &&
-      (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+      (canvas.getContext('webgl2') || canvas.getContext('experimental-webgl2'))
     );
   } catch (e) {
     return false;
@@ -35,9 +35,16 @@ export function glueGetWebGLContext(
     };
   }
 
+   var opts = { alpha: false, 
+                 depth: false, 
+                 stencil: false, 
+                 premultipliedAlpha: false, 
+                 antialias: false, 
+                 preserveDrawingBuffer: true, 
+                 powerPreference: "high-performance" }; // "low_power", "high_performance", "default"
   const context =
-    canvas.getContext('webgl', options) ||
-    canvas.getContext('experimental-webgl', options);
+    canvas.getContext('webgl2', opts) ||
+    canvas.getContext('experimental-webgl2', opts);
 
   if (!context) {
     throw new Error('WebGL is not available.');
