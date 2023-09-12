@@ -1,5 +1,4 @@
 import { Glue } from './Glue';
-import { gluePreprocessShader } from './GluePreprocessor';
 import { GlueUniforms, GlueUniformValue } from './GlueUniforms';
 import { GlueSourceType } from './GlueUtils';
 
@@ -33,18 +32,15 @@ export class GlueProgram {
     private gl: WebGLRenderingContext | WebGL2RenderingContext,
     private glue: Glue,
     fragmentShaderSource: string,
-    vertexShaderSource: string,
-    customImports: Record<string, string> = {}
+    vertexShaderSource: string
   ) {
-    const fragmentResult = gluePreprocessShader(
+    const fragmentResult = glue.preprocessor.preprocessShader(
       fragmentShaderSource,
-      false,
-      customImports
+      false
     );
-    const vertexResult = gluePreprocessShader(
+    const vertexResult = glue.preprocessor.preprocessShader(
       vertexShaderSource,
-      true,
-      customImports
+      true
     );
 
     const program = gl.createProgram();

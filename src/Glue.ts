@@ -1,5 +1,6 @@
 import { GlueTextureDrawOptions } from './GlueDrawable';
 import { GlueGroup } from './GlueGroup';
+import { GluePreprocessor } from './GluePreprocessor';
 import { GlueProgram } from './GlueProgram';
 import {
   defaultFragmentShader,
@@ -13,12 +14,13 @@ import { GlueSourceType } from './GlueUtils';
 export class Glue {
   private _programs: Record<string, GlueProgram> = {};
   private _textures: Record<string, GlueTexture> = {};
-  private _imports: Record<string, string> = {};
   private _width = 0;
   private _height = 0;
   private _disposed = false;
   private _groups: GlueGroup[] = [];
   private _currentGroupIndex = 0;
+
+  preprocessor = new GluePreprocessor();
 
   /**
    * Create a new Glue instance around a given WebGL context.
@@ -147,8 +149,7 @@ export class Glue {
       this.gl,
       this,
       fragmentShader || defaultFragmentShader,
-      vertexShader || defaultVertexShader,
-      this._imports
+      vertexShader || defaultVertexShader
     );
 
     this._programs[name] = program;
@@ -202,8 +203,7 @@ export class Glue {
       this.gl,
       this,
       fragmentShader || defaultFragmentShader,
-      vertexShader || defaultVertexShader,
-      this._imports
+      vertexShader || defaultVertexShader
     );
 
     program.apply(uniforms);
@@ -261,8 +261,7 @@ export class Glue {
    * @param source Source of the partial.
    */
   registerImport(name: string, source: string): void {
-    this.checkDisposed();
-    this._imports[name] = source;
+    this.preprocessor.registerImport(name, source);
   }
 
   /**
@@ -270,8 +269,7 @@ export class Glue {
    * @param name Name of the partial.
    */
   deregisterImport(name: string): void {
-    this.checkDisposed();
-    delete this._imports[name];
+    this.preprocessor.deregisterImport(name);
   }
 
   /**
