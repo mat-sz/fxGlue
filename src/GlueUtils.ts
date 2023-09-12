@@ -20,13 +20,29 @@ export function glueIsWebGLAvailable(): boolean {
 }
 
 /**
+ * Check if WebGL 2 is available in the current browser.
+ * @returns Whether WebGL 2 is available or not.
+ */
+export function glueIsWebGL2Available(): boolean {
+  try {
+    const canvas = document.createElement('canvas');
+    return !!(
+      window.WebGL2RenderingContext &&
+      (canvas.getContext('webgl2') || canvas.getContext('experimental-webgl2'))
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Get a WebGL context from a given canvas.
  * @returns The WebGL context.
  */
 export function glueGetWebGLContext(
   canvas: HTMLCanvasElement,
   options?: WebGLContextAttributes
-): WebGLRenderingContext {
+): WebGLRenderingContext | WebGL2RenderingContext {
   if (options) {
     options.premultipliedAlpha = false;
   } else {
@@ -36,6 +52,8 @@ export function glueGetWebGLContext(
   }
 
   const context =
+    canvas.getContext('webgl2', options) ||
+    canvas.getContext('experimental-webgl2', options) ||
     canvas.getContext('webgl', options) ||
     canvas.getContext('experimental-webgl', options);
 

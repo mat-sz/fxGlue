@@ -24,7 +24,7 @@ export class Glue {
    * Create a new Glue instance around a given WebGL context.
    * @param gl WebGL context obtained by calling .getContext('webgl') or by using glueGetWebGLContext.
    */
-  constructor(private gl: WebGLRenderingContext) {
+  constructor(private gl: WebGLRenderingContext | WebGL2RenderingContext) {
     this.registerProgram('~default');
     this.registerProgram('~blend', blendFragmentShader);
 

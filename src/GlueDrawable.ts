@@ -50,7 +50,10 @@ export interface GlueTextureDrawOptions {
 export class GlueDrawable {
   protected _disposed = false;
 
-  constructor(protected gl: WebGLRenderingContext, protected glue: Glue) {}
+  constructor(
+    protected gl: WebGLRenderingContext | WebGL2RenderingContext,
+    protected glue: Glue
+  ) {}
 
   get width(): number {
     throw new Error('Not implemented.');

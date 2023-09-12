@@ -4,7 +4,7 @@ import { glueGetWebGLContext } from './GlueUtils';
 export class GlueCanvas {
   readonly canvas: HTMLCanvasElement;
   readonly glue: Glue;
-  readonly gl: WebGLRenderingContext;
+  readonly gl: WebGLRenderingContext | WebGL2RenderingContext;
 
   /**
    * Creates a new canvas and a new Glue instance.

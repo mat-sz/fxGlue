@@ -11,7 +11,7 @@ export class GlueGroup extends GlueDrawable {
    * Create a new GlueGroup instance around a given WebGL context.
    * @param gl WebGL context obtained by calling .getContext('webgl') or by using glueGetWebGLContext.
    */
-  constructor(gl: WebGLRenderingContext, glue: Glue) {
+  constructor(gl: WebGLRenderingContext | WebGL2RenderingContext, glue: Glue) {
     super(gl, glue);
 
     // Create two framebuffers to be swapped during rendering.

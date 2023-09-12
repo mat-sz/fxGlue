@@ -30,7 +30,7 @@ export class GlueProgram {
    * @throws When compilation fails a GlueProgramError (containing vertexShaderErrors and fragmentShaderErrors properties) will be thrown.
    */
   constructor(
-    private gl: WebGLRenderingContext,
+    private gl: WebGLRenderingContext | WebGL2RenderingContext,
     private glue: Glue,
     fragmentShaderSource: string,
     vertexShaderSource: string,

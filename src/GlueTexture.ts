@@ -19,7 +19,7 @@ export class GlueTexture extends GlueDrawable {
    * @param _source HTMLImageElement, HTMLVideoElement or HTMLCanvasElement containing the source. Must be loaded.
    */
   constructor(
-    gl: WebGLRenderingContext,
+    gl: WebGLRenderingContext | WebGL2RenderingContext,
     glue: Glue,
     private _source: GlueSourceType
   ) {

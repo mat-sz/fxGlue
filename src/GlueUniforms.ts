@@ -24,7 +24,7 @@ export class GlueUniforms {
    * @param glue Glue instance.
    */
   constructor(
-    private gl: WebGLRenderingContext,
+    private gl: WebGLRenderingContext | WebGL2RenderingContext,
     private glue: Glue,
     private program: WebGLProgram
   ) {
