@@ -304,6 +304,11 @@ export interface GluePreprocessorResult {
 export class GluePreprocessor {
   private _imports: Record<string, string> = {};
 
+  vertexShaderPrefix = '';
+  fragmentShaderPrefix = '';
+  vertexShaderSuffix = '';
+  fragmentShaderSuffix = '';
+
   /**
    * Registers a GLSL partial as an import to be used with the @use syntax.
    * Unlike other register functions, this will replace the currently registered import with the same name.
@@ -330,6 +335,11 @@ export class GluePreprocessor {
    */
   preprocessShader(source: string, vertex = false): GluePreprocessorResult {
     let processedShader = shaderPrefix;
+
+    processedShader += vertex
+      ? this.vertexShaderPrefix
+      : this.fragmentShaderPrefix;
+
     if (vertex) {
       processedShader += 'attribute vec3 position;\n';
     }
@@ -370,6 +380,10 @@ export class GluePreprocessor {
       currentInputLine++;
       currentOutputLine++;
     }
+
+    processedShader += vertex
+      ? this.vertexShaderSuffix
+      : this.fragmentShaderSuffix;
 
     return {
       lineMap,
