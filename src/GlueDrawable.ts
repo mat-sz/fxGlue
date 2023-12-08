@@ -93,7 +93,7 @@ export class GlueDrawable {
       {
         iImage: 1,
         iSize: size,
-        iOffset: [x / this.width, y / this.height],
+        iOffset: [x / this.glue.width, y / this.glue.height],
         iOpacity: opacity,
         iBlendMode: mode,
         iAngle: Math.PI * 2 - angle,
