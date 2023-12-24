@@ -262,6 +262,15 @@ export class Glue {
   }
 
   /**
+   * Clears the current rendering context.
+   */
+  clear(): void {
+    const gl = this.gl;
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+  }
+
+  /**
    * Renders the final image to the canvas. Must be called after everything else.
    * Other calls may still render to the canvas, there is no guarantee that
    * nothing will be rendered before this function is called.

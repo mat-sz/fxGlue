@@ -50,17 +50,20 @@ glue.registerTexture('source', source);
 glue.registerProgram('filter', fragmentShader);
 
 // In requestAnimationFrame.
+glue.clear();
 glue.texture('source')?.draw();
 glue.program('filter')?.uniforms.set('iRed', 0.5);
 glue.program('filter')?.apply();
 glue.render();
 
 // Or, simpler...
+glue.clear();
 glue.texture('source')?.draw();
 glue.program('filter')?.apply({ iRed: 0.5 });
 glue.render();
 
 // If you'd like to only apply filters to one texture.
+glue.clear();
 glue.texture('source')?.draw();
 glue.begin(); // Opens a new drawing group.
 glue.texture('source')?.draw();
