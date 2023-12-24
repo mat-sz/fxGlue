@@ -74,8 +74,8 @@ export class GlueDrawable {
   draw({
     x = 0,
     y = 0,
-    width,
-    height,
+    width = this.width,
+    height = this.height,
     opacity = 1,
     mode = GlueBlendMode.NORMAL,
     mask,
@@ -83,17 +83,11 @@ export class GlueDrawable {
   }: GlueTextureDrawOptions = {}): void {
     this.use();
 
-    let size = [this.width, this.height];
-    if (width && height) {
-      size = [width, height];
-    }
-
     const blendProgram = this.glue.program('~blend');
     blendProgram?.apply(
       {
         iImage: 1,
-        iSize: size,
-        iOffset: [x / this.glue.width, y / this.glue.height],
+        ...this.glue.layerUniforms(x, y, width, height),
         iOpacity: opacity,
         iBlendMode: mode,
         iAngle: Math.PI * 2 - angle,

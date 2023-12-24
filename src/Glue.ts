@@ -19,6 +19,9 @@ export class Glue {
   private _disposed = false;
   private _groups: GlueGroup[] = [];
   private _currentGroupIndex = 0;
+  private _offsetX = 0;
+  private _offsetY = 0;
+  private _scale = 1;
 
   preprocessor = new GluePreprocessor();
 
@@ -61,6 +64,54 @@ export class Glue {
    */
   get height(): number {
     return this._height;
+  }
+
+  /**
+   * Sets the offset of the output.
+   */
+  setOffset(x: number, y: number): void {
+    this.checkDisposed();
+
+    this._offsetX = x;
+    this._offsetY = y;
+  }
+
+  /**
+   * Output offset (px).
+   */
+  get offset(): { x: number; y: number } {
+    return { x: this._offsetX, y: this._offsetY };
+  }
+
+  /**
+   * Sets the scale of the output.
+   */
+  setScale(scale: number): void {
+    this.checkDisposed();
+
+    this._scale = scale;
+  }
+
+  /**
+   * Output scale.
+   */
+  get scale(): number {
+    return this._scale;
+  }
+
+  layerUniforms(
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ): Record<string, GlueUniformValue> {
+    return {
+      iOffset: [
+        ((x + this._offsetX) / this.width) * this._scale,
+        ((y + this._offsetY) / this.height) * this._scale,
+      ],
+      iSize: [width * this._scale, height * this._scale],
+    };
   }
 
   /**
