@@ -1,6 +1,6 @@
-import { Glue } from './Glue';
-import { GlueBlendMode } from './GlueShaderSources';
-import { GlueSourceType } from './GlueUtils';
+import { Glue } from './Glue.js';
+import { GlueBlendMode } from './GlueShaderSources.js';
+import { GlueSourceType } from './GlueUtils.js';
 
 /**
  * Draw options for textures.

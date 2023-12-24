@@ -1,5 +1,5 @@
-import { Glue } from './Glue';
-import { GlueDrawable } from './GlueDrawable';
+import { Glue } from './Glue.js';
+import { GlueDrawable } from './GlueDrawable.js';
 
 export class GlueGroup extends GlueDrawable {
   private _renderTextures: WebGLTexture[] = [];

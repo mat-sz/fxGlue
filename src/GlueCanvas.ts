@@ -1,5 +1,5 @@
-import { Glue } from './Glue';
-import { glueGetWebGLContext } from './GlueUtils';
+import { Glue } from './Glue.js';
+import { glueGetWebGLContext } from './GlueUtils.js';
 
 export class GlueCanvas {
   readonly canvas: HTMLCanvasElement;

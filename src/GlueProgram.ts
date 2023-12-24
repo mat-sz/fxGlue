@@ -1,6 +1,6 @@
-import { Glue } from './Glue';
-import { GlueUniforms, GlueUniformValue } from './GlueUniforms';
-import { GlueSourceType } from './GlueUtils';
+import { Glue } from './Glue.js';
+import { GlueUniforms, GlueUniformValue } from './GlueUniforms.js';
+import { GlueSourceType } from './GlueUtils.js';
 
 const rectangleBuffer = new Float32Array([
   -1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1,

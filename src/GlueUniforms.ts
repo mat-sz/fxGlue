@@ -1,4 +1,4 @@
-import { Glue } from './Glue';
+import { Glue } from './Glue.js';
 
 export type GlueUniformValue =
   | string

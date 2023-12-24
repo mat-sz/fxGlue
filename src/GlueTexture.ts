@@ -1,10 +1,10 @@
-import { Glue } from './Glue';
-import { GlueDrawable } from './GlueDrawable';
+import { Glue } from './Glue.js';
+import { GlueDrawable } from './GlueDrawable.js';
 import {
   glueIsSourceLoaded,
   glueGetSourceDimensions,
   GlueSourceType,
-} from './GlueUtils';
+} from './GlueUtils.js';
 
 export class GlueTexture extends GlueDrawable {
   private _width: number;

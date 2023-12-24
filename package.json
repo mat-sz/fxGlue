@@ -2,8 +2,16 @@
   "name": "fxglue",
   "version": "0.2.0",
   "description": "WebGL-based image processing library.",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    }
+  },
+  "type": "module",
   "keywords": [
     "library",
     "typescript",
@@ -57,15 +65,12 @@
   "license": "BSD-3-Clause-Clear",
   "private": false,
   "devDependencies": {
-    "@types/jest": "^26.0.23",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
     "eslint": "^7.27.0",
     "husky": "^6.0.0",
-    "jest": "^27.0.4",
     "lint-staged": "^11.0.0",
     "prettier": "^2.3.0",
-    "ts-jest": "^27.0.2",
     "typescript": "^4.3.2"
   }
 }

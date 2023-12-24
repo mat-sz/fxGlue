@@ -1,15 +1,15 @@
-import { GlueTextureDrawOptions } from './GlueDrawable';
-import { GlueGroup } from './GlueGroup';
-import { GluePreprocessor } from './GluePreprocessor';
-import { GlueProgram } from './GlueProgram';
+import { GlueTextureDrawOptions } from './GlueDrawable.js';
+import { GlueGroup } from './GlueGroup.js';
+import { GluePreprocessor } from './GluePreprocessor.js';
+import { GlueProgram } from './GlueProgram.js';
 import {
   defaultFragmentShader,
   defaultVertexShader,
   blendFragmentShader,
-} from './GlueShaderSources';
-import { GlueTexture } from './GlueTexture';
-import { GlueUniformValue } from './GlueUniforms';
-import { GlueSourceType } from './GlueUtils';
+} from './GlueShaderSources.js';
+import { GlueTexture } from './GlueTexture.js';
+import { GlueUniformValue } from './GlueUniforms.js';
+import { GlueSourceType } from './GlueUtils.js';
 
 export class Glue {
   private _programs: Record<string, GlueProgram> = {};
