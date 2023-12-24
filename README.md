@@ -5,7 +5,6 @@ WebGL-based 2D image processing/effects library.
 </p>
 
 <p align="center">
-<img alt="workflow" src="https://img.shields.io/github/actions/workflow/status/mat-sz/fxglue/node.js.yml?branch=main">
 <a href="https://npmjs.com/package/fxglue">
 <img alt="npm" src="https://img.shields.io/npm/v/fxglue">
 <img alt="npm" src="https://img.shields.io/npm/dw/fxglue">

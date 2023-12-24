@@ -36,7 +36,6 @@
   ],
   "scripts": {
     "prepare": "npm run build",
-    "test": "jest --passWithNoTests",
     "build": "tsc",
     "lint": "eslint src"
   },
