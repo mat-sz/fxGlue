@@ -1,5 +1,10 @@
 export * from './Glue';
 export * from './GlueCanvas';
+export * from './GlueDrawable';
+export * from './GlueGroup';
+export * from './GluePreprocessor';
+export * from './GlueProgram';
+export * from './GlueShaderSources';
+export * from './GlueTexture';
+export * from './GlueUniforms';
 export * from './GlueUtils';
-export { GlueBlendMode } from './GlueShaderSources';
-export type { GlueUniformValue } from './GlueUniforms';
