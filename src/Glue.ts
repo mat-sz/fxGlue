@@ -30,6 +30,7 @@ export class Glue {
    * @param gl WebGL context obtained by calling .getContext('webgl') or by using glueGetWebGLContext.
    */
   constructor(private gl: WebGLRenderingContext | WebGL2RenderingContext) {
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     this.registerProgram('~default');
     this.registerProgram('~blend', blendFragmentShader);
 
@@ -103,12 +104,12 @@ export class Glue {
     x: number,
     y: number,
     width: number,
-    height: number
+    height: number,
   ): Record<string, GlueUniformValue> {
     return {
       iOffset: [
-        ((x + this._offsetX) / this.width) * this._scale,
-        ((y + this._offsetY) / this.height) * this._scale,
+        (x + this._offsetX) * this._scale,
+        (y + this._offsetY) * this._scale,
       ],
       iSize: [width * this._scale, height * this._scale],
     };
@@ -188,7 +189,7 @@ export class Glue {
   registerProgram(
     name: string,
     fragmentShader?: string,
-    vertexShader?: string
+    vertexShader?: string,
   ): GlueProgram {
     this.checkDisposed();
 
@@ -200,7 +201,7 @@ export class Glue {
       this.gl,
       this,
       fragmentShader || defaultFragmentShader,
-      vertexShader || defaultVertexShader
+      vertexShader || defaultVertexShader,
     );
 
     this._programs[name] = program;
@@ -248,13 +249,13 @@ export class Glue {
   apply(
     fragmentShader?: string,
     vertexShader?: string,
-    uniforms?: Record<string, GlueUniformValue>
+    uniforms?: Record<string, GlueUniformValue>,
   ): void {
     const program = new GlueProgram(
       this.gl,
       this,
       fragmentShader || defaultFragmentShader,
-      vertexShader || defaultVertexShader
+      vertexShader || defaultVertexShader,
     );
 
     program.apply(uniforms);

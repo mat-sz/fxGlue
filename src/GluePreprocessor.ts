@@ -292,6 +292,22 @@ float mask(float value) {
   return mask(p, value);
 }
 `,
+  uv: `vec2 rotateUV(vec2 uv, float angle, vec2 pivot) {
+  float s = sin(angle);
+  float c = cos(angle);
+  mat2 rotationMatrix = mat2(c, s, s, c);
+  return rotationMatrix * (uv - pivot) + pivot;
+}
+
+vec2 getUV(vec2 offset, vec2 size, float angle) {
+  vec2 uv = gl_FragCoord.xy;
+  uv.y = iResolution.y - uv.y;
+  uv -= offset;
+  uv = rotateUV(uv, angle, size/2.0);
+  uv /= size;
+  uv.y = 1.0 - uv.y;
+  return uv;
+}`,
 };
 
 const shaderPrefix = 'precision mediump float;\nprecision mediump int;\n';
